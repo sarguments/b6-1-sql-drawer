@@ -33,11 +33,12 @@ sqlite3 :memory: "SELECT sqlite_version();"
 
 | 파일 | 내용 |
 | --- | --- |
-| `schema.sql` | 테이블 5개 생성(`CREATE TABLE`) — PK·FK·제약조건·타입 주석 |
-| `seed.sql` | 샘플 데이터 입력(`INSERT`) — 테이블당 10행 이상 |
-| `queries.sql` | 핵심 쿼리 15개 + 각 쿼리 한 줄 설명 |
-| `results/` | 쿼리별 실행 결과 텍스트(`Q01`~`Q15`)·요약·보너스 2건 |
-| `scripts/capture_results.py` | 스키마·샘플 데이터를 새로 채우고 결과를 다시 만드는 스크립트 |
+| [`schema.sql`](schema.sql) | 테이블 5개 생성(`CREATE TABLE`) — PK·FK·제약조건·타입 주석 |
+| [`seed.sql`](seed.sql) | 샘플 데이터 입력(`INSERT`) — 테이블당 10행 이상 |
+| [`queries.sql`](queries.sql) | 핵심 쿼리 15개 + 각 쿼리 한 줄 설명 + 인덱스 |
+| [`results/`](results) | 쿼리별 실행 결과 텍스트(`Q01`~`Q15`)·요약·보너스 3건 |
+| [`erd.svg`](erd.svg) · [`erd.dot`](erd.dot) | 테이블 관계도(ERD) 이미지와 생성 원본 |
+| [`scripts/capture_results.py`](scripts/capture_results.py) | 스키마·샘플 데이터를 새로 채우고 결과를 다시 만드는 스크립트 |
 
 ## 실행 방법
 
@@ -55,6 +56,11 @@ sqlite3 b6-1.sqlite3 < schema.sql
 sqlite3 b6-1.sqlite3 < seed.sql
 sqlite3 b6-1.sqlite3 < queries.sql
 ```
+
+`queries.sql`은 표준 SQL 범위로 썼습니다. SQLite 고유 문법을 쓴 곳은 두 군데뿐이고, 해당 위치에 주석으로 표시했습니다.
+
+- `schema.sql`의 `AUTOINCREMENT`(자동 증가 키), `PRAGMA foreign_keys = ON`(외래 키 검사 켜기)
+- `queries.sql` Q15의 `EXPLAIN QUERY PLAN`(실행 계획 출력)
 
 ## 데이터 설계
 
@@ -79,40 +85,115 @@ sqlite3 b6-1.sqlite3 < queries.sql
 
 ## 쿼리 15개
 
+쿼리 본문은 [`queries.sql`](queries.sql)에, 각 쿼리의 실행 결과는 `results/`의 같은 이름 파일에 있다. 아래 표의 `Qxx`가 결과 파일 링크다.
+
 | 번호 | 범주 | 무엇을 확인하는가 |
 | --- | --- | --- |
-| Q01 | 기본 조회 | 가동 중 설비 목록 (`WHERE` + `ORDER BY`) |
-| Q02 | 기본 조회 | 최근 정비 5건 (`ORDER BY` + `LIMIT`) |
-| Q03 | 기본 조회 | 고장 정비 이력만 (`WHERE` 값 비교) |
-| Q04 | 기본 조회 | 2026-09-01 이후 설치 설비 (`DATE` 범위 비교) |
-| Q05 | 조인 | 정비 이력 + 설비 + 담당자 (`INNER JOIN` 2개) |
-| Q06 | 조인 | 설비별 부품 목록 (`INNER JOIN`) |
-| Q07 | 조인 | 설비별 정비 건수 (`LEFT JOIN` + `COUNT`) |
-| Q08 | 조인 | 설비별 알람 (`LEFT JOIN`) |
-| Q09 | 집계 | 담당자별 총 정비 시간 (`SUM` + `GROUP BY`) |
-| Q10 | 집계 | 정비 2건 이상 설비의 평균·최대 시간 (`AVG` + `GROUP BY` + `HAVING`) |
-| Q11 | 집계 | 라인별 알람 건수 (`COUNT` + `GROUP BY`) |
-| Q12 | 서브쿼리 | 정비 이력이 없는 설비 찾기 (`NOT EXISTS`) |
-| Q13 | 수정 | 정비 완료 설비를 가동 상태로 되돌리기 (`UPDATE`) |
-| Q14 | 삭제 | 처리 완료된 오래된 `WARN` 알람 지우기 (`DELETE`) |
-| Q15 | 인덱스 | 정비 이력 조회 인덱스 생성 + 적용 이유 |
+| [Q01](results/Q01.txt) | 기본 조회 | 가동 중 설비 목록 (`WHERE` + `ORDER BY`) |
+| [Q02](results/Q02.txt) | 기본 조회 | 최근 정비 5건 (`ORDER BY` + `LIMIT`) |
+| [Q03](results/Q03.txt) | 기본 조회 | 고장 정비 이력만 (`WHERE` 값 비교) |
+| [Q04](results/Q04.txt) | 기본 조회 | 2026-09-01 이후 설치 설비 (`DATE` 범위 비교) |
+| [Q05](results/Q05.txt) | 조인 | 정비 이력 + 설비 + 담당자 (`INNER JOIN` 2개) |
+| [Q06](results/Q06.txt) | 조인 | 설비별 부품 목록 (`INNER JOIN`) |
+| [Q07](results/Q07.txt) | 조인 | 설비별 정비 건수 (`LEFT JOIN` + `COUNT`) |
+| [Q08](results/Q08.txt) | 조인 | 설비별 알람 (`LEFT JOIN`) |
+| [Q09](results/Q09.txt) | 집계 | 담당자별 총 정비 시간 (`SUM` + `GROUP BY`) |
+| [Q10](results/Q10.txt) | 집계 | 정비 2건 이상 설비의 평균·최대 시간 (`AVG` + `GROUP BY` + `HAVING`) |
+| [Q11](results/Q11.txt) | 집계 | 라인별 알람 건수 (`COUNT` + `GROUP BY`) |
+| [Q12](results/Q12.txt) | 서브쿼리 | 정비 이력이 없는 설비 찾기 (`NOT EXISTS`) |
+| [Q13](results/Q13.txt) | 수정 | 정비 완료 설비를 가동 상태로 되돌리기 (`UPDATE`) |
+| [Q14](results/Q14.txt) | 삭제 | 처리 완료된 오래된 `WARN` 알람 지우기 (`DELETE`) |
+| [Q15](results/Q15.txt) | 인덱스 | 정비 이력 조회 인덱스 생성 + 적용 이유 |
 
-요구 범주 대비: 기본 조회 4, 조인 4(`INNER` 2·`LEFT` 2), 집계 3(`COUNT`·`SUM`·`AVG`), 서브쿼리 1, 수정·삭제 2, 인덱스 1.
+범주 분포는 기본 조회 4, 조인 4(`INNER` 2·`LEFT` 2), 집계 3(`COUNT`·`SUM`·`AVG`), 서브쿼리 1, 수정·삭제 2, 인덱스 1이다. 아래는 일부 쿼리의 본문과 결과다.
+
+### Q07 — 설비별 정비 건수 (`LEFT JOIN`)
+
+`maintenance`에 이력이 없는 설비도 `LEFT JOIN`이라 0건으로 남는다. `EQ-AG-001`(이동 로봇 1호)이 그 예다.
+
+```sql
+SELECT e.asset_code, e.name AS equipment_name, COUNT(m.id) AS maintenance_count
+FROM equipment AS e
+LEFT JOIN maintenance AS m ON m.equipment_id = e.id
+GROUP BY e.id, e.asset_code, e.name
+ORDER BY maintenance_count DESC, e.asset_code;
+```
+
+```text
+asset_code | equipment_name | maintenance_count
+-----------+----------------+------------------
+EQ-CV-001  | 컨베이어 1호        | 4
+EQ-CB-001  | 협동로봇 셀 1호      | 3
+...
+EQ-WD-002  | 용접 로봇 2호       | 1
+EQ-AG-001  | 이동 로봇 1호       | 0
+(12행)
+```
+
+### Q12 — 정비 이력이 없는 설비 (`NOT EXISTS`)
+
+Q07의 `0`건 설비를 조건으로 직접 고른 형태다. 서브쿼리로 이력 유무만 확인한다.
+
+```sql
+SELECT e.asset_code, e.name AS equipment_name, e.installed_on, e.status
+FROM equipment AS e
+WHERE NOT EXISTS (
+    SELECT 1 FROM maintenance AS m WHERE m.equipment_id = e.id
+)
+ORDER BY e.asset_code;
+```
+
+```text
+asset_code | equipment_name | installed_on | status
+-----------+----------------+--------------+-------
+EQ-AG-001  | 이동 로봇 1호       | 2026-09-20   | IDLE
+(1행)
+```
+
+### Q10 — 정비 2건 이상 설비의 평균·최대 시간 (`AVG` + `HAVING`)
+
+`GROUP BY`로 설비별로 묶고, `HAVING COUNT(m.id) >= 2`로 2건 이상만 남겨 평균 소요 시간 순으로 본다.
+
+```text
+asset_code | equipment_name | maintenance_count | avg_minutes | max_minutes
+-----------+----------------+-------------------+-------------+------------
+EQ-CB-002  | 협동로봇 셀 2호      | 2                 | 115.0       | 180
+EQ-WD-001  | 용접 로봇 1호       | 3                 | 111.7       | 200
+...
+EQ-CV-002  | 컨베이어 2호        | 2                 | 50.0        | 65
+(10행)
+```
+
+### Q15 — 인덱스 적용 전후 실행 계획
+
+`maintenance (equipment_id, started_at)`에 인덱스를 만든 뒤 같은 조회를 다시 계획해 본다. 전체 훑기(`SCAN`)가 인덱스 탐색(`SEARCH ... USING INDEX`)으로 바뀐다.
+
+```text
+-- 생성 전
+SCAN maintenance
+-- 생성 후
+SEARCH maintenance USING INDEX idx_maintenance_equipment_started
+```
+
+### Q13·Q14 — 값 변경과 삭제
+
+`UPDATE`(Q13)는 정비가 끝난 `MAINTENANCE` 설비를 `RUNNING`으로 되돌리고, `DELETE`(Q14)는 처리 완료된 오래된 `WARN` 알람을 지운다. 값을 바꾸는 쿼리가 뒤에 있어, 같은 파일을 다시 실행하면 결과가 달라진다. 그래서 결과 재생성은 스키마·샘플 데이터부터 새로 채운다.
 
 ## 보너스
 
-- `results/bonus1-join-vs-subquery.txt` — "정비 이력이 있는 설비"를 `JOIN`과 `EXISTS` 두 방식으로 풀어 비교.
-- `results/bonus2-fk-violation.txt` — 없는 부모 값(`equipment_id = 999`)을 넣어 FK가 막는 것과 고치는 방법 기록.
+세 과제를 모두 [`scripts/capture_results.py`](scripts/capture_results.py)에서 재현하고 결과를 남겼다.
 
-## 실행 확인 결과 (2026-10-02, 이 기기)
+- [보너스 1 — 같은 요구를 `JOIN`과 서브쿼리 두 방식으로](results/bonus1-join-vs-subquery.txt): "정비 이력이 있는 설비"를 `INNER JOIN`과 `EXISTS`로 각각 뽑아 결과가 같음을 확인하고, 언제 어느 쪽을 쓰는지 비교했다.
+- [보너스 2 — 데이터 정합성 깨뜨려 보기](results/bonus2-fk-violation.txt): 없는 부모 값(`equipment_id = 999`)을 넣어 `FOREIGN KEY constraint failed`로 막히는 것과 고치는 방법을 기록했다.
+- [보너스 3 — 핵심 지표 미니 리포트](results/bonus3-mini-report.txt): 이 DB로 뽑는 핵심 지표 3개(설비별 총 정비 시간 상위, 라인별 고장 정비 건수, 정비 담당자별 평균 처리 시간)와 각 지표 SQL을 정리했다.
 
-- `python3 scripts/capture_results.py` 정상 종료(exit 0). 전체 재현은 `pristine` 데이터베이스에서 실행된다.
-- 테이블 행 수: 설비 12 · 담당 10 · 부품 24 · 정비 이력 30 · 알람 18 (모두 10행 이상).
-- `PRAGMA foreign_key_check` 문제 없음.
-- `queries.sql` Q15의 실행 계획이 인덱스 생성 전 `SCAN maintenance` → 생성 후 `SEARCH maintenance USING INDEX idx_maintenance_equipment_started`로 바뀌는 것을 확인.
-- SQLite 라이브러리 3.40.1(Python 3.10.11 내장), macOS 기본 `sqlite3` CLI 3.37.0에서 확인. 쿼리는 표준 SQL 범위로 썼고 SQLite 전용 문법은 쓰지 않았다.
+## 테이블 관계 (ERD)
 
-## 남은 일
+![테이블 관계도](erd.svg)
 
-- 로컬 작업 사본은 아직 커밋하지 않았다(커밋·푸시는 별도 확인 뒤 진행).
-- (선택) ERD 이미지 추가.
+- `equipment`(설비) 1 : N `component`(부품)
+- `equipment`(설비) 1 : N `maintenance`(정비 이력)
+- `technician`(정비 담당) 1 : N `maintenance`(정비 이력)
+- `equipment`(설비) 1 : N `alarm_log`(알람 로그)
+
+`erd.dot`이 Graphviz 원본이고, `erd.svg`는 그로부터 만든 이미지다.

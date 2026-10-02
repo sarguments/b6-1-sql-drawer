@@ -1,13 +1,15 @@
 -- B6-1 설비 카탈로그·정비 이력 데이터베이스 — 스키마 생성 스크립트
 -- 실행: sqlite3 b6-1.sqlite3 < schema.sql   (같은 일을 python3 scripts/capture_results.py 가 자동으로 한다)
 --
--- SQLite는 연결마다 외래 키 검사가 기본으로 꺼져 있다. 아래 한 줄이 없으면 자식 테이블에
--- 없는 부모 값을 넣어도 막히지 않는다. 요구사항 3의 "FK가 실제로 동작"은 이 줄에서 나온다.
+-- SQLite 전용 문법을 두 곳에서 쓴다.
+--   · AUTOINCREMENT: INTEGER PRIMARY KEY에 붙여 새 키가 이전 최댓값보다 크게 증가하도록 한다.
+--   · PRAGMA foreign_keys = ON: SQLite는 연결마다 외래 키 검사가 기본으로 꺼져 있다. 이 줄이 없으면
+--     자식 테이블에 없는 부모 값을 넣어도 막히지 않아, FK가 실제로 동작하지 않는다.
 PRAGMA foreign_keys = ON;
 
 -- 1) 설비 — 카탈로그의 기준 테이블. 정비 이력·부품·알람이 이 표의 id를 참조한다.
 CREATE TABLE equipment (
-    id           INTEGER PRIMARY KEY AUTOINCREMENT,   -- 자동 증가 정수 키
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,   -- 자동 증가 정수 키 (SQLite 전용)
     asset_code   TEXT    NOT NULL UNIQUE,              -- 자산 코드, 사내에서 유일(UNIQUE)
     name         TEXT    NOT NULL,                     -- 설비 이름
     model        TEXT    NOT NULL,                     -- 제조사 모델명

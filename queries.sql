@@ -119,6 +119,7 @@ SELECT level, COUNT(*) AS remaining_count FROM alarm_log GROUP BY level ORDER BY
 -- 적용 이유: 화면 조회는 "설비 하나의 기간별 정비 이력"이 가장 잦다. 인덱스가 없으면 그 조회가
 -- 매번 maintenance 전체를 훑는다. (equipment_id, started_at) 순서로 두면 설비로 먼저 좁히고
 -- 그 안에서 기간을 자를 수 있다. 아래 EXPLAIN QUERY PLAN 두 줄이 붙기 전과 후를 보여준다.
+-- (EXPLAIN QUERY PLAN은 SQLite 전용 문법이다.)
 EXPLAIN QUERY PLAN
 SELECT id, started_at, duration_min FROM maintenance
 WHERE equipment_id = 5 AND started_at >= '2026-07-01';
