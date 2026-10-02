@@ -1,0 +1,24 @@
+Q08 — 설비별 알람을 본다. LEFT JOIN — 알람이 한 번도 없는 설비도 목록에 남는다.
+
+asset_code | equipment_name | alarm_code     | level | occurred_at        
+-----------+----------------+----------------+-------+--------------------
+EQ-AG-001  | 이동 로봇 1호       | NULL           | NULL  | NULL               
+EQ-CB-001  | 협동로봇 셀 1호      | GRIPPER_ALIGN  | ERROR | 2026-08-05 08:12:00
+EQ-CB-001  | 협동로봇 셀 1호      | GRIPPER_ALIGN  | WARN  | 2026-09-18 14:30:00
+EQ-CB-002  | 협동로봇 셀 2호      | VISION_TIMEOUT | WARN  | 2026-09-08 09:47:00
+EQ-CV-001  | 컨베이어 1호        | MOTOR_OVERTEMP | ERROR | 2026-07-21 16:18:00
+EQ-CV-001  | 컨베이어 1호        | BELT_SLIP      | WARN  | 2026-09-28 18:05:00
+EQ-CV-002  | 컨베이어 2호        | ROLLER_JAM     | WARN  | 2026-08-11 19:31:00
+EQ-PL-001  | 포장기 1호         | HEATER_OPEN    | ERROR | 2026-07-27 07:41:00
+EQ-PL-001  | 포장기 1호         | FILM_TENSION   | WARN  | 2026-09-16 14:52:00
+EQ-RB-001  | 조립 로봇팔 1호      | MOTOR_OVERTEMP | WARN  | 2026-07-12 13:58:00
+EQ-RB-001  | 조립 로봇팔 1호      | POS_DEVIATION  | ERROR | 2026-08-14 10:22:00
+EQ-RB-002  | 조립 로봇팔 2호      | BELT_TENSION   | WARN  | 2026-08-19 21:02:00
+EQ-VS-001  | 비전 검사기 1호      | LIGHT_FAIL     | WARN  | 2026-09-15 13:08:00
+EQ-VS-001  | 비전 검사기 1호      | CAM_LOST       | ERROR | 2026-09-25 11:44:00
+EQ-VS-002  | 비전 검사기 2호      | CAM_LOST       | ERROR | 2026-08-29 15:21:00
+EQ-VS-002  | 비전 검사기 2호      | LENS_DIRT      | WARN  | 2026-09-22 10:02:00
+EQ-WD-001  | 용접 로봇 1호       | TORCH_WEAR     | WARN  | 2026-07-31 09:10:00
+EQ-WD-001  | 용접 로봇 1호       | WIRE_SUPPLY    | ERROR | 2026-08-07 12:25:00
+EQ-WD-002  | 용접 로봇 2호       | GUN_DAMAGE     | ERROR | 2026-06-27 16:55:00
+(19행)

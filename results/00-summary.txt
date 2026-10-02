@@ -1,0 +1,32 @@
+환경
+- sqlite3 라이브러리 버전: 3.40.1
+- 파이썬: 3.10.11
+- 데이터베이스: b6-1.sqlite3 (스키마·샘플 데이터를 새로 채운 뒤 실행)
+
+테이블별 행 수 (요구: 최소 10행)
+- equipment: 12행
+- technician: 10행
+- component: 24행
+- maintenance: 30행
+- alarm_log: 18행
+
+무결성
+- PRAGMA foreign_key_check: 문제 없음
+
+쿼리 15개 실행 결과
+- Q01: 가동 중(RUNNING) 설비를 라인·자산 코드 순으로 본다. WHERE 필터 + ORDER BY 정렬.
+- Q02: 가장 최근 정비 5건만 본다. ORDER BY 내림차순 + LIMIT.
+- Q03: 고장 정비(BREAKDOWN) 이력만 본다. 값이 정해진 컬럼에 대한 WHERE 비교.
+- Q04: 최근에 설치한 설비(2026-09-01 이후)를 본다. 날짜 범위 비교(DATE 타입).
+- Q05: 정비 이력을 설비 이름·담당자 이름과 함께 본다. INNER JOIN 2개(연결된 행이 있는 것만).
+- Q06: 설비별 부품 목록을 본다. INNER JOIN — 설비와 부품을 한 번에 뽑는다.
+- Q07: 설비별 정비 건수를 본다. LEFT JOIN — 정비 이력이 없는 설비도 0건으로 나온다.
+- Q08: 설비별 알람을 본다. LEFT JOIN — 알람이 한 번도 없는 설비도 목록에 남는다.
+- Q09: 담당자별 총 정비 시간을 본다. 집계 SUM + GROUP BY.
+- Q10: 정비가 2건 이상인 설비의 평균·최대 정비 시간을 본다. 집계 AVG + GROUP BY + HAVING.
+- Q11: 라인별 알람 건수를 본다. 집계 COUNT + GROUP BY, ERROR 건수는 조건부 집계로 센다.
+- Q12: 정비 이력이 한 번도 없는 설비를 찾는다. 서브쿼리(NOT EXISTS).
+- Q13: 정비가 끝난(DONE) 이력만 있는 MAINTENANCE 상태 설비를 가동(RUNNING)으로 되돌린다. UPDATE.
+- Q14: 처리 완료(cleared_at 있음)된 WARN 알람 중 오래된 것(2026-08-01 이전)을 지운다. DELETE.
+- Q15: 정비 이력 조회에 인덱스를 붙인다.
+- Q15 실행 후 등록된 인덱스: ['idx_maintenance_equipment_started']

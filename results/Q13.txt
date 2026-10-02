@@ -1,0 +1,9 @@
+Q13 — 정비가 끝난(DONE) 이력만 있는 MAINTENANCE 상태 설비를 가동(RUNNING)으로 되돌린다. UPDATE.
+
+[변경] 0행 적용
+
+asset_code | name      | status     
+-----------+-----------+------------
+EQ-CB-002  | 협동로봇 셀 2호 | MAINTENANCE
+EQ-WD-002  | 용접 로봇 2호  | RETIRED    
+(2행)

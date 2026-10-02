@@ -1,0 +1,6 @@
+Q12 — 정비 이력이 한 번도 없는 설비를 찾는다. 서브쿼리(NOT EXISTS).
+
+asset_code | equipment_name | installed_on | status
+-----------+----------------+--------------+-------
+EQ-AG-001  | 이동 로봇 1호       | 2026-09-20   | IDLE  
+(1행)

@@ -1,0 +1,13 @@
+Q15 — 정비 이력 조회에 인덱스를 붙인다.
+
+id | parent | notused | detail          
+---+--------+---------+-----------------
+2  | 0      | 0       | SCAN maintenance
+(1행)
+
+[변경] -1행 적용
+
+id | parent | notused | detail                                  
+---+--------+---------+-----------------------------------------
+3  | 0      | 0       | SEARCH maintenance USING INDEX idx_main…
+(1행)

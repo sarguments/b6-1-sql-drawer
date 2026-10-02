@@ -1,0 +1,10 @@
+보너스 2 — 데이터 정합성 깨뜨려 보기
+
+시도한 SQL
+INSERT INTO maintenance (equipment_id, technician_id, kind, started_at, duration_min) VALUES (999, 1, 'PERIODIC', '2026-10-01 09:00:00', 30)
+
+결과
+- 막았다 — sqlite3.IntegrityError: FOREIGN KEY constraint failed
+
+왜 막히는가: equipment_id 999는 equipment에 없다. schema.sql 첫 줄의 PRAGMA foreign_keys = ON 이 켜져 있어야 이 검사가 동작한다. SQLite는 기본이 꺼짐이다.
+어떻게 고치는가: 없는 부모를 참조한 것이므로 ① equipment에 해당 설비를 먼저 넣거나 ② 실제 설비 id로 바꿔 넣는다.
