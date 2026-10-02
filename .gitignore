@@ -3,3 +3,7 @@
 .env
 .env.*
 !.env.example
+
+# 실행할 때 만들어지는 데이터베이스 파일 (스키마·샘플 데이터로 언제든 다시 만든다)
+b6-1.sqlite3
+b6-1.sqlite3-journal
