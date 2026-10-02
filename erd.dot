@@ -1,0 +1,66 @@
+// B6-1 테이블 관계도(ERD) — Graphviz 원본
+// 이미지 생성: dot -Tpng erd.dot -o erd.png
+digraph b6_1 {
+    graph [rankdir=LR, bgcolor="white", fontname="Apple SD Gothic Neo", pad="0.4"];
+    node  [shape=plaintext, fontname="Apple SD Gothic Neo", fontsize=12];
+    edge  [fontname="Apple SD Gothic Neo", fontsize=10, dir=both, arrowtail=tee, arrowhead=crow];
+
+    equipment [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4">
+        <TR><TD BGCOLOR="#e8eefc"><B>equipment</B> (설비)</TD></TR>
+        <TR><TD ALIGN="LEFT"><B>id</B> INTEGER PK</TD></TR>
+        <TR><TD ALIGN="LEFT">asset_code TEXT UNIQUE NOT NULL</TD></TR>
+        <TR><TD ALIGN="LEFT">name TEXT NOT NULL</TD></TR>
+        <TR><TD ALIGN="LEFT">model TEXT NOT NULL</TD></TR>
+        <TR><TD ALIGN="LEFT">line_name TEXT NOT NULL</TD></TR>
+        <TR><TD ALIGN="LEFT">installed_on DATE NOT NULL</TD></TR>
+        <TR><TD ALIGN="LEFT">status TEXT CHECK</TD></TR>
+    </TABLE>>];
+
+    technician [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4">
+        <TR><TD BGCOLOR="#e8eefc"><B>technician</B> (정비 담당)</TD></TR>
+        <TR><TD ALIGN="LEFT"><B>id</B> INTEGER PK</TD></TR>
+        <TR><TD ALIGN="LEFT">employee_no TEXT UNIQUE NOT NULL</TD></TR>
+        <TR><TD ALIGN="LEFT">name TEXT NOT NULL</TD></TR>
+        <TR><TD ALIGN="LEFT">team TEXT NOT NULL</TD></TR>
+        <TR><TD ALIGN="LEFT">cert_level TEXT CHECK</TD></TR>
+        <TR><TD ALIGN="LEFT">joined_on DATE NOT NULL</TD></TR>
+    </TABLE>>];
+
+    component [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4">
+        <TR><TD BGCOLOR="#eef7e8"><B>component</B> (부품)</TD></TR>
+        <TR><TD ALIGN="LEFT"><B>id</B> INTEGER PK</TD></TR>
+        <TR><TD ALIGN="LEFT"><FONT COLOR="#0a7">equipment_id INTEGER FK</FONT></TD></TR>
+        <TR><TD ALIGN="LEFT">part_no TEXT NOT NULL</TD></TR>
+        <TR><TD ALIGN="LEFT">name TEXT NOT NULL</TD></TR>
+        <TR><TD ALIGN="LEFT">quantity INTEGER CHECK</TD></TR>
+        <TR><TD ALIGN="LEFT">replaced_on DATE NULL</TD></TR>
+    </TABLE>>];
+
+    maintenance [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4">
+        <TR><TD BGCOLOR="#fdf0e6"><B>maintenance</B> (정비 이력)</TD></TR>
+        <TR><TD ALIGN="LEFT"><B>id</B> INTEGER PK</TD></TR>
+        <TR><TD ALIGN="LEFT"><FONT COLOR="#0a7">equipment_id INTEGER FK</FONT></TD></TR>
+        <TR><TD ALIGN="LEFT"><FONT COLOR="#0a7">technician_id INTEGER FK</FONT></TD></TR>
+        <TR><TD ALIGN="LEFT">kind TEXT CHECK</TD></TR>
+        <TR><TD ALIGN="LEFT">started_at DATETIME NOT NULL</TD></TR>
+        <TR><TD ALIGN="LEFT">duration_min INTEGER CHECK</TD></TR>
+        <TR><TD ALIGN="LEFT">cost INTEGER NULL</TD></TR>
+        <TR><TD ALIGN="LEFT">result TEXT CHECK</TD></TR>
+        <TR><TD ALIGN="LEFT">note TEXT NULL</TD></TR>
+    </TABLE>>];
+
+    alarm_log [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4">
+        <TR><TD BGCOLOR="#f3e8fc"><B>alarm_log</B> (알람 로그)</TD></TR>
+        <TR><TD ALIGN="LEFT"><B>id</B> INTEGER PK</TD></TR>
+        <TR><TD ALIGN="LEFT"><FONT COLOR="#0a7">equipment_id INTEGER FK</FONT></TD></TR>
+        <TR><TD ALIGN="LEFT">alarm_code TEXT NOT NULL</TD></TR>
+        <TR><TD ALIGN="LEFT">level TEXT CHECK</TD></TR>
+        <TR><TD ALIGN="LEFT">occurred_at DATETIME NOT NULL</TD></TR>
+        <TR><TD ALIGN="LEFT">cleared_at DATETIME NULL</TD></TR>
+    </TABLE>>];
+
+    equipment -> component   [taillabel="1", headlabel="N"];
+    equipment -> maintenance [taillabel="1", headlabel="N"];
+    technician -> maintenance [taillabel="1", headlabel="N"];
+    equipment -> alarm_log   [taillabel="1", headlabel="N"];
+}
