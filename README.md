@@ -4,14 +4,12 @@
 
 ## 소재
 스마트팩토리·로봇을 소재로 삼는다. 설비 카탈로그와 정비 이력을 담는 서랍장을 만든다. 설비·부품·정비 기록의 관계를 다룬다.
-미션 요구사항과 제약은 원문을 그대로 따르고, 소재는 데이터·예시·문구 범위에서만 바꾼다.
 
 ## 범위
 SQL 실습·테이블 4개+·1:N 관계 2개+·CREATE/INSERT 스크립트·쿼리 15개·인덱스
 
 ## 개발 환경
-로컬 DB와 SQL 실행 도구를 사용하는 실습입니다. 최소 준비안은 SQLite와 sqlite3 CLI이며, 착수 시 사용할 DB를 확정합니다.
-백엔드 프레임워크는 사용하지 않습니다.
+SQLite와 `sqlite3` CLI를 사용한다. 백엔드 프레임워크는 쓰지 않는다.
 
 ### 새 환경에서 준비
 
@@ -36,6 +34,7 @@ sqlite3 :memory: "SELECT sqlite_version();"
 | [`schema.sql`](schema.sql) | 테이블 5개 생성(`CREATE TABLE`) — PK·FK·제약조건·타입 주석 |
 | [`seed.sql`](seed.sql) | 샘플 데이터 입력(`INSERT`) — 테이블당 10행 이상 |
 | [`queries.sql`](queries.sql) | 핵심 쿼리 15개 + 각 쿼리 한 줄 설명 + 인덱스 |
+| [`QUERIES.md`](QUERIES.md) | 쿼리 15개를 한 쿼리마다 설명·SQL 전문·실행 결과 전체로 정리한 문서 |
 | [`results/`](results) | 쿼리별 실행 결과 텍스트(`Q01`~`Q15`)·요약·보너스 3건 |
 | [`erd.svg`](erd.svg) · [`erd.dot`](erd.dot) | 테이블 관계도(ERD) 이미지와 생성 원본 |
 | [`scripts/capture_results.py`](scripts/capture_results.py) | 스키마·샘플 데이터를 새로 채우고 결과를 다시 만드는 스크립트 |
@@ -81,103 +80,30 @@ sqlite3 b6-1.sqlite3 < queries.sql
 - **여러 사람이 동시에 다룰 수 있다**: 공유 파일은 두 사람이 열면 나중에 저장한 쪽이 앞선 저장을 덮는다. 데이터베이스는 여러 연결이 동시에 읽고 쓰고, 트랜잭션으로 일부만 반영되는 상태를 막는다.
 - **필요한 열만 골라 한 번에 뽑는다**: 조인·집계로 원하는 조합을 쿼리 하나로 얻는다(Q05~Q11). 엑셀의 VLOOKUP·피벗도 비슷한 일을 하지만, 데이터가 늘면 시트 전체를 다시 계산해야 한다.
 
-이번 실습에서 그 차이가 실제로 드러나는 곳은 테이블 5개와 1:N 관계 4개(`schema.sql`), FK 위반 차단(`results/bonus2-fk-violation.txt`), `UNIQUE`·`CHECK` 제약, 조인·집계 쿼리(Q05~Q11)다.
+## 핵심 개념 정리
+
+- **PK vs FK**: PK(Primary Key)는 그 행 하나를 가리키는 고유 이름표다. `equipment.id`처럼 행마다 다르고 비어 있을 수 없다. FK(Foreign Key)는 다른 표의 PK를 가리키는 연결 고리다. `maintenance.equipment_id`가 `equipment.id`를 가리키는 식이다. PK는 "이 행은 누구인가", FK는 "이 행은 누구와 이어져 있나"를 담당한다.
+- **1:N 관계**: 한 부모 행에 여러 자식 행이 붙는 관계다. 설비 한 대에 정비 이력이 여러 건 붙는 것이 그 예다. 자식 쪽(`maintenance`)이 부모의 id(`equipment_id`)를 값으로 들고 있어, 이 값으로 둘을 이어 붙인다.
+- **INNER JOIN vs LEFT JOIN**: `INNER JOIN`은 양쪽에 짝이 있는 행만 남긴다. `LEFT JOIN`은 왼쪽 표의 행을 모두 남기고, 오른쪽에 짝이 없으면 그 자리를 `NULL`로 채운다. Q07에서 정비 이력이 없는 설비(`EQ-AG-001`)를 0건으로 남기는 데 `LEFT JOIN`을 썼다.
+- **GROUP BY와 집계 함수**: `GROUP BY`로 행을 기준별로 묶고, 묶음마다 `COUNT`(건수)·`SUM`(합계)·`AVG`(평균)를 계산한다. Q09는 담당자별로 묶어 총 정비 시간을, Q10은 설비별로 묶어 평균·최대 시간을 구한다. 묶은 뒤의 조건은 `WHERE`가 아니라 `HAVING`으로 건다(Q10의 `HAVING COUNT(m.id) >= 2`).
+- **SELECT / INSERT / UPDATE / DELETE**: `SELECT`는 조회, `INSERT`는 새 행 입력, `UPDATE`는 기존 값 변경, `DELETE`는 행 삭제다. 데이터를 바꾸는 쿼리(Q13·Q14)는 조회(Q01~Q12) 뒤에 둔다.
+- **인덱스**: 특정 컬럼 기준으로 찾을 때 표 전체를 훑지 않도록 미리 정렬해 둔 색인이다. 자주 조건으로 쓰는 컬럼에 붙인다. Q15는 `maintenance (equipment_id, started_at)`에 붙여, 실행 계획이 전체 훑기(`SCAN`)에서 인덱스 탐색(`SEARCH ... USING INDEX`)으로 바뀌는 것을 보여준다.
 
 ## 쿼리 15개
 
-쿼리 본문은 [`queries.sql`](queries.sql)에, 각 쿼리의 실행 결과는 `results/`의 같은 이름 파일에 있다. 아래 표의 `Qxx`가 결과 파일 링크다.
+> [!TIP]
+> 쿼리별 한 줄 설명·SQL 전문·실행 결과 전체는 **[`QUERIES.md`](QUERIES.md)** 에 모아 두었다.
 
-| 번호 | 범주 | 무엇을 확인하는가 |
-| --- | --- | --- |
-| [Q01](results/Q01.txt) | 기본 조회 | 가동 중 설비 목록 (`WHERE` + `ORDER BY`) |
-| [Q02](results/Q02.txt) | 기본 조회 | 최근 정비 5건 (`ORDER BY` + `LIMIT`) |
-| [Q03](results/Q03.txt) | 기본 조회 | 고장 정비 이력만 (`WHERE` 값 비교) |
-| [Q04](results/Q04.txt) | 기본 조회 | 2026-09-01 이후 설치 설비 (`DATE` 범위 비교) |
-| [Q05](results/Q05.txt) | 조인 | 정비 이력 + 설비 + 담당자 (`INNER JOIN` 2개) |
-| [Q06](results/Q06.txt) | 조인 | 설비별 부품 목록 (`INNER JOIN`) |
-| [Q07](results/Q07.txt) | 조인 | 설비별 정비 건수 (`LEFT JOIN` + `COUNT`) |
-| [Q08](results/Q08.txt) | 조인 | 설비별 알람 (`LEFT JOIN`) |
-| [Q09](results/Q09.txt) | 집계 | 담당자별 총 정비 시간 (`SUM` + `GROUP BY`) |
-| [Q10](results/Q10.txt) | 집계 | 정비 2건 이상 설비의 평균·최대 시간 (`AVG` + `GROUP BY` + `HAVING`) |
-| [Q11](results/Q11.txt) | 집계 | 라인별 알람 건수 (`COUNT` + `GROUP BY`) |
-| [Q12](results/Q12.txt) | 서브쿼리 | 정비 이력이 없는 설비 찾기 (`NOT EXISTS`) |
-| [Q13](results/Q13.txt) | 수정 | 정비 완료 설비를 가동 상태로 되돌리기 (`UPDATE`) |
-| [Q14](results/Q14.txt) | 삭제 | 처리 완료된 오래된 `WARN` 알람 지우기 (`DELETE`) |
-| [Q15](results/Q15.txt) | 인덱스 | 정비 이력 조회 인덱스 생성 + 적용 이유 |
+쿼리 본문은 [`queries.sql`](queries.sql)에, 각 쿼리의 실행 결과는 `results/`의 `Q01.txt`~`Q15.txt`에 있다.
 
-범주 분포는 기본 조회 4, 조인 4(`INNER` 2·`LEFT` 2), 집계 3(`COUNT`·`SUM`·`AVG`), 서브쿼리 1, 수정·삭제 2, 인덱스 1이다. 아래는 일부 쿼리의 본문과 결과다.
+- 기본 조회: [Q01](results/Q01.txt) · [Q02](results/Q02.txt) · [Q03](results/Q03.txt) · [Q04](results/Q04.txt)
+- 조인: [Q05](results/Q05.txt) · [Q06](results/Q06.txt) · [Q07](results/Q07.txt) · [Q08](results/Q08.txt)
+- 집계: [Q09](results/Q09.txt) · [Q10](results/Q10.txt) · [Q11](results/Q11.txt)
+- 서브쿼리: [Q12](results/Q12.txt)
+- 수정·삭제: [Q13](results/Q13.txt) · [Q14](results/Q14.txt)
+- 인덱스: [Q15](results/Q15.txt)
 
-### Q07 — 설비별 정비 건수 (`LEFT JOIN`)
-
-`maintenance`에 이력이 없는 설비도 `LEFT JOIN`이라 0건으로 남는다. `EQ-AG-001`(이동 로봇 1호)이 그 예다.
-
-```sql
-SELECT e.asset_code, e.name AS equipment_name, COUNT(m.id) AS maintenance_count
-FROM equipment AS e
-LEFT JOIN maintenance AS m ON m.equipment_id = e.id
-GROUP BY e.id, e.asset_code, e.name
-ORDER BY maintenance_count DESC, e.asset_code;
-```
-
-```text
-asset_code | equipment_name | maintenance_count
------------+----------------+------------------
-EQ-CV-001  | 컨베이어 1호        | 4
-EQ-CB-001  | 협동로봇 셀 1호      | 3
-...
-EQ-WD-002  | 용접 로봇 2호       | 1
-EQ-AG-001  | 이동 로봇 1호       | 0
-(12행)
-```
-
-### Q12 — 정비 이력이 없는 설비 (`NOT EXISTS`)
-
-Q07의 `0`건 설비를 조건으로 직접 고른 형태다. 서브쿼리로 이력 유무만 확인한다.
-
-```sql
-SELECT e.asset_code, e.name AS equipment_name, e.installed_on, e.status
-FROM equipment AS e
-WHERE NOT EXISTS (
-    SELECT 1 FROM maintenance AS m WHERE m.equipment_id = e.id
-)
-ORDER BY e.asset_code;
-```
-
-```text
-asset_code | equipment_name | installed_on | status
------------+----------------+--------------+-------
-EQ-AG-001  | 이동 로봇 1호       | 2026-09-20   | IDLE
-(1행)
-```
-
-### Q10 — 정비 2건 이상 설비의 평균·최대 시간 (`AVG` + `HAVING`)
-
-`GROUP BY`로 설비별로 묶고, `HAVING COUNT(m.id) >= 2`로 2건 이상만 남겨 평균 소요 시간 순으로 본다.
-
-```text
-asset_code | equipment_name | maintenance_count | avg_minutes | max_minutes
------------+----------------+-------------------+-------------+------------
-EQ-CB-002  | 협동로봇 셀 2호      | 2                 | 115.0       | 180
-EQ-WD-001  | 용접 로봇 1호       | 3                 | 111.7       | 200
-...
-EQ-CV-002  | 컨베이어 2호        | 2                 | 50.0        | 65
-(10행)
-```
-
-### Q15 — 인덱스 적용 전후 실행 계획
-
-`maintenance (equipment_id, started_at)`에 인덱스를 만든 뒤 같은 조회를 다시 계획해 본다. 전체 훑기(`SCAN`)가 인덱스 탐색(`SEARCH ... USING INDEX`)으로 바뀐다.
-
-```text
--- 생성 전
-SCAN maintenance
--- 생성 후
-SEARCH maintenance USING INDEX idx_maintenance_equipment_started
-```
-
-### Q13·Q14 — 값 변경과 삭제
-
-`UPDATE`(Q13)는 정비가 끝난 `MAINTENANCE` 설비를 `RUNNING`으로 되돌리고, `DELETE`(Q14)는 처리 완료된 오래된 `WARN` 알람을 지운다. 값을 바꾸는 쿼리가 뒤에 있어, 같은 파일을 다시 실행하면 결과가 달라진다. 그래서 결과 재생성은 스키마·샘플 데이터부터 새로 채운다.
+범주 분포는 기본 조회 4, 조인 4(`INNER` 2·`LEFT` 2), 집계 3(`COUNT`·`SUM`·`AVG`), 서브쿼리 1, 수정·삭제 2, 인덱스 1이다.
 
 ## 보너스
 
@@ -195,5 +121,3 @@ SEARCH maintenance USING INDEX idx_maintenance_equipment_started
 - `equipment`(설비) 1 : N `maintenance`(정비 이력)
 - `technician`(정비 담당) 1 : N `maintenance`(정비 이력)
 - `equipment`(설비) 1 : N `alarm_log`(알람 로그)
-
-`erd.dot`이 Graphviz 원본이고, `erd.svg`는 그로부터 만든 이미지다.
