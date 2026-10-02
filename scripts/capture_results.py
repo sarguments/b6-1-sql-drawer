@@ -23,7 +23,7 @@ INDEX_QUERY = (
     "SELECT name FROM sqlite_master "
     "WHERE type = 'index' AND name NOT LIKE 'sqlite_%' ORDER BY name"
 )
-MIN_ROWS = 10  # 요구사항: 각 테이블에 최소 10행
+MIN_ROWS = 10  # 각 테이블 목표 최소 행 수
 CELL_LIMIT = 40
 
 
@@ -128,7 +128,7 @@ def main() -> int:
         f"- 파이썬: {sys.version.split()[0]}",
         f"- 데이터베이스: {DB_PATH.name} (스키마·샘플 데이터를 새로 채운 뒤 실행)",
         "",
-        "테이블별 행 수 (요구: 최소 10행)",
+        "테이블별 행 수 (기준: 최소 10행)",
     ]
     summary += [f"- {t}: {n}행" + ("  ← 10행 미만" if n < MIN_ROWS else "") for t, n in counts.items()]
 
@@ -191,6 +191,61 @@ def main() -> int:
         "어떻게 고치는가: 없는 부모를 참조한 것이므로 ① equipment에 해당 설비를 먼저 넣거나 "
         "② 실제 설비 id로 바꿔 넣는다.",
     )
+
+    # 보너스 3: 이 DB로 뽑는 핵심 지표 3개와 각 지표 SQL을 정리한다. 앞선 Q13·Q14로 값이 바뀐 뒤의
+    # 상태를 그대로 반영한다.
+    metrics = [
+        (
+            "설비별 총 정비 시간 상위 5",
+            "어느 설비에 정비 시간이 많이 들어가는지 본다. 정비 우선순위·교체 검토의 근거가 된다.",
+            "SELECT e.asset_code, e.name AS equipment_name, SUM(m.duration_min) AS total_minutes\n"
+            "FROM maintenance AS m\n"
+            "INNER JOIN equipment AS e ON e.id = m.equipment_id\n"
+            "GROUP BY e.id, e.asset_code, e.name\n"
+            "ORDER BY total_minutes DESC\n"
+            "LIMIT 5;",
+        ),
+        (
+            "라인별 고장(BREAKDOWN) 정비 건수",
+            "라인별로 돌발 고장이 얼마나 잦은지 본다. 정기 점검 주기를 조정하는 근거가 된다.",
+            "SELECT e.line_name, COUNT(m.id) AS breakdown_count\n"
+            "FROM maintenance AS m\n"
+            "INNER JOIN equipment AS e ON e.id = m.equipment_id\n"
+            "WHERE m.kind = 'BREAKDOWN'\n"
+            "GROUP BY e.line_name\n"
+            "ORDER BY breakdown_count DESC;",
+        ),
+        (
+            "담당자별 평균 정비 처리 시간(분)",
+            "누가 한 건을 평균 얼마나 걸려 처리하는지 본다. 교육·배분의 근거가 된다.",
+            "SELECT t.employee_no, t.name AS technician_name, t.team,\n"
+            "       COUNT(m.id) AS maintenance_count,\n"
+            "       ROUND(AVG(m.duration_min), 1) AS avg_minutes\n"
+            "FROM technician AS t\n"
+            "INNER JOIN maintenance AS m ON m.technician_id = t.id\n"
+            "GROUP BY t.id, t.employee_no, t.name, t.team\n"
+            "ORDER BY avg_minutes DESC;",
+        ),
+    ]
+    report_parts = ["보너스 3 — 핵심 지표 미니 리포트", "", "이 DB로 뽑을 수 있는 핵심 지표 3개와 각 SQL이다."]
+    for title, purpose, sql in metrics:
+        cursor = conn.execute(sql)
+        columns = [d[0] for d in cursor.description]
+        rows = cursor.fetchall()
+        report_parts += [
+            "",
+            f"## {title}",
+            purpose,
+            "",
+            "```sql",
+            sql,
+            "```",
+            "",
+            "```text",
+            render_table(columns, rows) + f"\n({len(rows)}행)",
+            "```",
+        ]
+    write(RESULTS_DIR / "bonus3-mini-report.txt", "\n".join(report_parts))
 
     write(RESULTS_DIR / "00-summary.txt", "\n".join(summary))
     conn.close()

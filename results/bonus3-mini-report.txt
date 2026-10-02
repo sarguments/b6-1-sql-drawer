@@ -1,0 +1,79 @@
+보너스 3 — 핵심 지표 미니 리포트
+
+이 DB로 뽑을 수 있는 핵심 지표 3개와 각 SQL이다.
+
+## 설비별 총 정비 시간 상위 5
+어느 설비에 정비 시간이 많이 들어가는지 본다. 정비 우선순위·교체 검토의 근거가 된다.
+
+```sql
+SELECT e.asset_code, e.name AS equipment_name, SUM(m.duration_min) AS total_minutes
+FROM maintenance AS m
+INNER JOIN equipment AS e ON e.id = m.equipment_id
+GROUP BY e.id, e.asset_code, e.name
+ORDER BY total_minutes DESC
+LIMIT 5;
+```
+
+```text
+asset_code | equipment_name | total_minutes
+-----------+----------------+--------------
+EQ-WD-001  | 용접 로봇 1호       | 335          
+EQ-CV-001  | 컨베이어 1호        | 295          
+EQ-CB-001  | 협동로봇 셀 1호      | 270          
+EQ-RB-001  | 조립 로봇팔 1호      | 245          
+EQ-PL-001  | 포장기 1호         | 240          
+(5행)
+```
+
+## 라인별 고장(BREAKDOWN) 정비 건수
+라인별로 돌발 고장이 얼마나 잦은지 본다. 정기 점검 주기를 조정하는 근거가 된다.
+
+```sql
+SELECT e.line_name, COUNT(m.id) AS breakdown_count
+FROM maintenance AS m
+INNER JOIN equipment AS e ON e.id = m.equipment_id
+WHERE m.kind = 'BREAKDOWN'
+GROUP BY e.line_name
+ORDER BY breakdown_count DESC;
+```
+
+```text
+line_name | breakdown_count
+----------+----------------
+조립 B라인    | 3              
+이송 라인     | 3              
+조립 A라인    | 2              
+용접 라인     | 2              
+검사 라인     | 2              
+포장 라인     | 1              
+(6행)
+```
+
+## 담당자별 평균 정비 처리 시간(분)
+누가 한 건을 평균 얼마나 걸려 처리하는지 본다. 교육·배분의 근거가 된다.
+
+```sql
+SELECT t.employee_no, t.name AS technician_name, t.team,
+       COUNT(m.id) AS maintenance_count,
+       ROUND(AVG(m.duration_min), 1) AS avg_minutes
+FROM technician AS t
+INNER JOIN maintenance AS m ON m.technician_id = t.id
+GROUP BY t.id, t.employee_no, t.name, t.team
+ORDER BY avg_minutes DESC;
+```
+
+```text
+employee_no | technician_name | team | maintenance_count | avg_minutes
+------------+-----------------+------+-------------------+------------
+TEC-1001    | 김정우             | 정비1팀 | 3                 | 101.7      
+TEC-1006    | 한지훈             | 정비3팀 | 4                 | 98.8       
+TEC-1008    | 오세진             | 정비1팀 | 3                 | 90.0       
+TEC-1010    | 배현우             | 정비3팀 | 3                 | 86.7       
+TEC-1007    | 윤가람             | 정비3팀 | 2                 | 80.0       
+TEC-1009    | 신유라             | 정비2팀 | 3                 | 78.3       
+TEC-1002    | 박서연             | 정비1팀 | 4                 | 65.0       
+TEC-1003    | 이현수             | 정비2팀 | 3                 | 63.3       
+TEC-1005    | 정도현             | 정비1팀 | 3                 | 55.0       
+TEC-1004    | 최민지             | 정비2팀 | 2                 | 50.0       
+(10행)
+```
