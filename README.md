@@ -121,3 +121,9 @@ sqlite3 b6-1.sqlite3 < queries.sql
 - `equipment`(설비) 1 : N `maintenance`(정비 이력)
 - `technician`(정비 담당) 1 : N `maintenance`(정비 이력)
 - `equipment`(설비) 1 : N `alarm_log`(알람 로그)
+
+## 작업 중 겪은 문제와 해결
+
+- `queries.sql` 뒤쪽 `UPDATE`·`DELETE` 때문에 같은 파일을 다시 돌리면 결과가 달라졌다. 스키마·샘플 데이터부터 새로 채우는 `scripts/capture_results.py`로 재생성 순서를 고정해 해결했다.
+- SQLite는 `PRAGMA foreign_keys = ON`이 꺼져 있으면 FK 위반을 막지 않는다. `schema.sql` 첫 줄에 켜는 문장을 넣고, 꺼졌을 때와 켜졌을 때를 `results/bonus2-fk-violation.txt`에 기록했다.
+- `maintenance` 기간 조회가 전체 훑기(`SCAN`)로 나왔다. `(equipment_id, started_at)` 복합 인덱스를 붙여 인덱스 탐색(`SEARCH ... USING INDEX`)으로 바뀌는 것을 `Q15` 실행 계획으로 확인했다.

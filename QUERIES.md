@@ -357,6 +357,14 @@ line_name | alarm_count | error_count
 
 정비 이력이 한 번도 없는 설비를 찾는다. 서브쿼리(`NOT EXISTS`).
 
+단계별 분해:
+
+1. 바깥 쿼리가 `equipment` 한 행(`e`)을 집는다.
+2. 안쪽 서브쿼리가 `maintenance`에서 `equipment_id = e.id`인 행이 있는지 찾는다.
+3. 안쪽에 행이 하나라도 있으면 `EXISTS`가 참이므로 `NOT EXISTS`는 거짓 → 그 설비는 제외된다.
+4. 안쪽에 행이 하나도 없으면 `NOT EXISTS`가 참 → 그 설비가 결과에 남는다.
+5. 남은 행을 `asset_code` 순으로 정렬한다. 결과는 `EQ-AG-001` 1행이다.
+
 ```sql
 SELECT e.asset_code, e.name AS equipment_name, e.installed_on, e.status
 FROM equipment AS e
