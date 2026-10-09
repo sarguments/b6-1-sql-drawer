@@ -105,6 +105,16 @@ sqlite3 b6-1.sqlite3 < queries.sql
 
 범주 분포는 기본 조회 4, 조인 4(`INNER` 2·`LEFT` 2), 집계 3(`COUNT`·`SUM`·`AVG`), 서브쿼리 1, 수정·삭제 2, 인덱스 1이다.
 
+## 실행 화면
+
+주요 쿼리 5개의 `sqlite3` 실행 화면이다. 텍스트 결과(`results/`)와 같은 내용이다.
+
+![Q01 가동 중 설비](screenshots/q01-running.png)
+![Q07 설비별 정비 건수](screenshots/q07-leftjoin.png)
+![Q09 담당자별 총 정비 시간](screenshots/q09-groupby.png)
+![Q12 정비 이력 없는 설비](screenshots/q12-notexists.png)
+![Q15 인덱스 탐색](screenshots/q15-index.png)
+
 ## 보너스
 
 세 과제를 모두 [`scripts/capture_results.py`](scripts/capture_results.py)에서 재현하고 결과를 남겼다.
