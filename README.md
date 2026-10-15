@@ -3,29 +3,13 @@
 코딧세이 AI 올인원 본과정 B6-1 미션 저장소입니다.
 
 ## 소재
-스마트팩토리·로봇을 소재로 삼는다. 설비 카탈로그와 정비 이력을 담는 서랍장을 만든다. 설비·부품·정비 기록의 관계를 다룬다.
+스마트팩토리의 설비·부품·정비 이력·담당자·알람을 SQLite로 관리한다. 설비 한 대에 여러 부품과 정비 이력, 알람이 연결되도록 테이블을 나눴다.
 
-## 범위
-SQL 실습·테이블 4개+·1:N 관계 2개+·CREATE/INSERT 스크립트·쿼리 15개·인덱스
+## 구현 내용
+테이블 5개, 1:N 관계 4개, 테이블당 샘플 데이터 10행 이상, 쿼리 15개와 복합 인덱스 1개를 작성했다.
 
 ## 개발 환경
-SQLite와 `sqlite3` CLI를 사용한다. 백엔드 프레임워크는 쓰지 않는다.
-
-### 새 환경에서 준비
-
-Git을 설치한 뒤 새 기기에서 저장소를 받습니다.
-
-```bash
-git clone https://github.com/sarguments/b6-1-sql-drawer.git
-cd b6-1-sql-drawer
-```
-
-SQLite 명령줄 도구를 설치한 뒤, 저장소 루트에서 메모리 데이터베이스 연결을 확인합니다.
-
-```bash
-sqlite3 --version
-sqlite3 :memory: "SELECT sqlite_version();"
-```
+SQLite와 `sqlite3` CLI를 사용한다. 결과를 일괄 생성할 때는 Python 3를 사용한다.
 
 ## 파일 구성
 
@@ -39,17 +23,10 @@ sqlite3 :memory: "SELECT sqlite_version();"
 | [`erd.svg`](erd.svg) · [`erd.dot`](erd.dot) | 테이블 관계도(ERD) 이미지와 생성 원본 |
 | [`scripts/capture_results.py`](scripts/capture_results.py) | 스키마·샘플 데이터를 새로 채우고 결과를 다시 만드는 스크립트 |
 | [`showcase/drawer-light.html`](showcase/drawer-light.html) · [`drawer.html`](showcase/drawer.html) | 설비·정비 데이터 한눈에 보기 — 쿼리·행 선택을 지원하는 오프라인 시연판 |
-| [`showcase/`](showcase) | 시연판 빌드·결과 추출 소스, 데이터, 포함 라이브러리와 라이선스 |
 
 ## 실행 방법
 
-결과를 다시 만들려면 스키마·샘플 데이터부터 새 데이터베이스에 채워야 합니다. `queries.sql` 뒤쪽에 값을 바꾸는 `UPDATE`·`DELETE`가 있어서, 이미 바뀐 데이터에 다시 실행하면 결과가 달라지기 때문입니다.
-
-```bash
-python3 scripts/capture_results.py      # 결과 일괄 재생성 (권장)
-```
-
-손으로 한 단계씩 확인하려면 같은 일을 이렇게 합니다. 먼저 기존 `b6-1.sqlite3`가 있으면 다른 이름으로 복사해 두고(덮어쓰면 되돌릴 수 없다), 아래를 실행합니다.
+저장소 루트에서 스키마, 샘플 데이터, 쿼리 순서로 실행한다. 기존 `b6-1.sqlite3`가 있다면 먼저 복사해 보관한다. 아래 명령은 기존 DB를 지우고 다시 만든다.
 
 ```bash
 rm -f b6-1.sqlite3
@@ -58,7 +35,13 @@ sqlite3 -cmd 'PRAGMA foreign_keys = ON' b6-1.sqlite3 < seed.sql
 sqlite3 -cmd 'PRAGMA foreign_keys = ON' b6-1.sqlite3 < queries.sql
 ```
 
-`sqlite3` CLI는 호출마다 별도 프로세스라 `PRAGMA foreign_keys` 같은 연결 설정이 다음 호출로 이어지지 않습니다. 그래서 스크립트 안에 `PRAGMA foreign_keys = ON`이 있는 `seed.sql`까지 포함해 모든 호출에 `-cmd 'PRAGMA foreign_keys = ON'`을 붙여, 어느 단계에서도 외래 키 검사가 켜진 상태로 실행되게 했습니다. 나중에 `sqlite3 b6-1.sqlite3`로 DB를 직접 열 때도 같은 옵션을 붙여야 검사가 켜집니다. `scripts/capture_results.py`는 Python `sqlite3` 연결에서 `PRAGMA`를 실행하므로 이 옵션 없이 그대로 쓰면 됩니다.
+외래 키 검사는 연결마다 켜야 하므로 각 명령에 `-cmd 'PRAGMA foreign_keys = ON'`을 붙였다. `UPDATE`·`DELETE` 실행 후에는 데이터가 바뀌므로, 결과를 다시 비교하려면 샘플 데이터부터 새로 적용한다.
+
+쿼리별 결과를 `results/`에 일괄 저장하려면 다음 명령을 실행한다. 이 명령도 기존 DB를 다시 만든다.
+
+```bash
+python3 scripts/capture_results.py
+```
 
 `queries.sql`은 표준 SQL 범위로 썼습니다. SQLite 고유 문법을 쓴 곳은 두 군데뿐이고, 해당 위치에 주석으로 표시했습니다.
 
@@ -111,29 +94,6 @@ sqlite3 -cmd 'PRAGMA foreign_keys = ON' b6-1.sqlite3 < queries.sql
 
 범주 분포는 기본 조회 4, 조인 4(`INNER` 2·`LEFT` 2), 집계 3(`COUNT`·`SUM`·`AVG`), 서브쿼리 1, 수정·삭제 2, 인덱스 1이다.
 
-## 대화형 시연판
-
-저장소를 받은 뒤 `showcase/drawer-light.html`을 Chrome에서 엽니다. 어두운 화면은 `showcase/drawer.html`이며 화면 안에서도 전환할 수 있습니다. GitHub의 HTML 파일 미리보기는 실행 화면이 아니므로 파일을 내려받거나 저장소를 복제한 뒤 로컬에서 엽니다. 서버·npm 설치·인터넷 연결은 필요 없습니다.
-
-- 쿼리를 고르면 짧은 설명·SQL·실행 결과와 표의 강조가 바뀝니다. SQL에는 구문 강조가 적용됩니다.
-- 자식 표의 id를 누르면 실제 부모 행으로 향하는 실선이 표시됩니다. 관계별 색과 R1~R4 번호, 점선·실선과 화살표로 구분합니다.
-- 표 머리글을 누르면 100%로 확대됩니다. **확대 전으로 (Esc)** 버튼이나 **Esc**로 이전 배율·스크롤로 돌아오며 쿼리와 선택 행은 유지됩니다. 선택박스에서는 Esc 본래 동작을 유지합니다.
-- 표는 ELK가 자동 배치하며 직접 끌어 옮기지 않습니다. 보드의 빈 곳을 끌어 이동하거나 확대·축소할 수 있습니다. 작은 화면에서는 전체 보기의 글자가 작으므로 개별 표를 확대해 확인합니다.
-
-시연판은 원본 SQL을 메모리 SQLite에서 실행해 저장한 결과를 재생합니다. 브라우저 안에서 SQL을 다시 실행하거나 저장소의 실제 DB를 수정하지 않습니다. 데이터까지 다시 만들려면 저장소 루트에서 다음을 실행합니다.
-
-```bash
-python3 showcase/export-evidence.py .
-node showcase/build-drawer.mjs
-node showcase/build-drawer.mjs --dark
-```
-
-Python은 표준 라이브러리만 사용합니다. HTML 재생성에는 Node.js가 필요하며, 화면 코드만 바꾸었다면 뒤의 두 명령만 실행합니다. 실행 환경·추출 시각·SQL 해시는 `showcase/evidence.json`에 기록됩니다.
-
-포함 라이브러리는 ELK.js 0.12.0(EPL-2.0)과 Prism.js 1.30.0(MIT)의 핵심·SQL 문법입니다. 원본·라이선스는 `showcase/vendor/`에 보관하고 HTML에도 라이선스를 포함했습니다. 시연판·짧은 쿼리 설명·화면 보조 도구의 수정 모델은 `openai-codex/gpt-6.1-sol`이며, 최신 UI 변경은 보조 에이전트 없이 직접 수정하고 Chrome에서 조작·화면 크기·구문 강조·확대 복귀를 확인했습니다. 미션 SQL 3개는 수정하지 않았습니다.
-
-![설비·정비 데이터 시연판](showcase/shots/drawer-current-light.png)
-
 ## 실행 화면
 
 주요 쿼리 5개를 실제로 실행해 생성한 `results/`의 텍스트 원문을 브라우저에 표시한 이미지다. 터미널 자체를 촬영한 이미지는 아니며, Q15도 `queries.sql`의 설비 5번·2026-07-01 이후 조건을 실행한 결과다.
@@ -163,16 +123,18 @@ Python은 표준 라이브러리만 사용합니다. HTML 재생성에는 Node.j
 
 ## 작업 중 겪은 문제와 해결
 
-- `queries.sql` 뒤쪽 `UPDATE`·`DELETE` 때문에 같은 파일을 다시 돌리면 결과가 달라졌다. 스키마·샘플 데이터부터 새로 채우는 `scripts/capture_results.py`로 재생성 순서를 고정해 해결했다.
-- SQLite는 `PRAGMA foreign_keys = ON`이 꺼져 있으면 FK 위반을 막지 않는다. 그래서 `schema.sql` 첫 줄에 켜는 문장을 두고, CLI 호출마다 `-cmd 'PRAGMA foreign_keys = ON'`을 붙여 연결별로 다시 켜지게 했다. `results/bonus2-fk-violation.txt`에는 검사가 켜진 상태에서 없는 부모 값(`equipment_id = 999`)을 넣어 거부된 1건만 기록했다. 꺼진 상태의 비교 실행은 이 파일에 담지 않았다.
-- `maintenance` 기간 조회가 전체 훑기(`SCAN`)로 나왔다. `(equipment_id, started_at)` 복합 인덱스를 붙여 인덱스 탐색(`SEARCH ... USING INDEX`)으로 바뀌는 것을 `Q15` 실행 계획으로 확인했다.
-- `scripts/capture_results.py`가 값을 바꾸는 `UPDATE`·`DELETE`·`CREATE INDEX`의 결과를 확정(`commit`)하지 않고 연결을 닫았다. 그래서 다시 연 DB는 되돌려진 상태였고, `results/`의 캡처와 어긋났다. 실행 끝에 `commit`을 넣어 캡처와 DB가 같은 최종 상태를 갖도록 고쳤다.
-- 같은 스크립트가 결과 표의 `detail` 값을 40자로 잘라 `results/Q15.txt`에도 잘린 실행 계획이 들어갔다. 자르기를 없애 실행 계획 원문이 그대로 남게 했고, 인덱스 생성처럼 행 수를 세지 않는 문장은 `rowcount`의 `-1`을 `-1행`으로 쓰지 않고 "행 수 미적용"으로 구분해 적게 했다.
+- **수정·삭제 후 재실행**: `UPDATE`·`DELETE`를 실행하면 데이터가 바뀌어 같은 조회의 결과도 달라진다. 결과를 비교할 때는 스키마와 샘플 데이터를 다시 적용해 같은 초기 상태에서 실행했다.
+- **외래 키 검사**: SQLite는 연결마다 `PRAGMA foreign_keys = ON`을 켜야 외래 키를 검사한다. 검사를 켠 뒤 없는 설비 번호를 참조하는 정비 기록을 넣어 `FOREIGN KEY constraint failed`로 거부되는 것을 확인했다.
+- **인덱스 적용**: 설비 번호와 시작 시각으로 정비 기록을 조회할 때 실행 계획이 전체 훑기(`SCAN`)로 나왔다. `(equipment_id, started_at)` 복합 인덱스를 추가하고 Q15에서 인덱스 탐색(`SEARCH ... USING INDEX`)으로 바뀌는 것을 확인했다.
 
-## 자료 검증과 보조 도구 수정 방식
+## 대화형 시연판
 
-보조 도구 수정의 메인 모델은 `openai-codex/gpt-6.1-sol`이다. 이번 경계 수정은 보조 에이전트 2개가 시연판 소스와 제출 설명을 나눠 맡았고, 메인이 통합·격리 DB·실제 브라우저·색 대비 검증을 담당했다. 보조 에이전트의 개별 모델 ID는 확인되지 않았다. 미션 SQL 3개는 변경하지 않았다.
+저장소를 내려받은 뒤 [`showcase/drawer-light.html`](showcase/drawer-light.html)을 Chrome에서 연다. 어두운 화면은 [`showcase/drawer.html`](showcase/drawer.html)이다.
 
-추가 재검토에서는 연결별 FK 활성화, FK 거부 기록의 실제 범위, Q13의 이력 0건 포함 조건, SQLite 날짜 타입의 한계, 엑셀 공동 편집과 SQLite 단일 쓰기 직렬화를 정정했다. 근거는 위 공식 문서에 연결했다.
+- 쿼리 선택: 해당 쿼리의 설명·SQL·실행 결과와 관련 행을 확인한다.
+- 자식 표의 id 선택: 그 행이 참조하는 부모 행을 확인한다.
+- 표 머리글 선택: 표를 확대한다. **확대 전으로 (Esc)** 버튼이나 **Esc**로 이전 화면으로 돌아간다.
 
-격리 DB에서 수동 명령 3개를 각각 새 연결로 실행하고, 추가 연결에서도 `foreign_keys=1`과 없는 부모 참조 거부를 확인했다. Q13은 현재 시드에서 변경 0행이며, 별도 입력에서 이력 0건·모두 DONE은 가동 상태로 바뀌고 REWORK가 있으면 바뀌지 않았다. 날짜가 아닌 문자열도 DATE 컬럼에 TEXT로 저장됨을 확인했다. 이 반례들은 검증용 DB에서만 실행했으며 미션 SQL·시드·제출 결과 데이터에는 추가하지 않았다.
+시연판은 저장된 SQL 실행 결과를 보여주며, 실제 DB의 데이터를 바꾸지 않는다.
+
+![설비·정비 데이터 시연판](showcase/shots/drawer-current-light.png)
