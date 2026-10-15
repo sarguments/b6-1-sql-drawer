@@ -381,10 +381,21 @@ EQ-AG-001  | 이동 로봇 1호       | 2026-09-20   | IDLE
 (1행)
 ```
 
-## Q13 — 정비 완료 설비를 가동 상태로 되돌리기 (`UPDATE`)
+## Q13 — 미완료 이력이 없는 설비를 가동 상태로 되돌리기 (`UPDATE`)
 
-정비가 끝난(DONE) 이력만 있는 MAINTENANCE 상태 설비를 가동(RUNNING)으로 되돌린다. `UPDATE`.
-아래 확인 조회는 바뀐 대상 두 설비의 상태를 바로 본다.
+`MAINTENANCE` 상태이면서 `DONE`이 아닌 정비 이력이 없는 설비를 `RUNNING`으로 바꾼다. `UPDATE`. 정비 이력이 1건 이상 존재하는지는 검사하지 않는다.
+
+조건을 정확히 읽으면 두 가지다.
+
+1. `status = 'MAINTENANCE'`인 설비일 것.
+2. 그 설비의 정비 이력 중 `result <> 'DONE'`인 행이 하나도 없을 것(`NOT EXISTS`). 즉 이력이 전부 `DONE`이거나, 정비 이력 자체가 0건일 때도 이 조건은 참이 된다. 이력이 없으면 `NOT EXISTS` 서브쿼리에 걸리는 행이 없으므로 "끝나지 않은 이력이 없다"가 성립한다.
+
+아래 확인 조회는 이번 조건에 걸리지 않아 바뀌지 않은 두 설비의 상태를 바로 본다. 둘 다 대상이 아니어서 `UPDATE`는 0행이다.
+
+- `EQ-CB-002`(협동로봇 셀 2호)는 `MAINTENANCE` 상태지만 정비 이력에 `DONE`이 아닌 `REWORK`가 있어 `NOT EXISTS` 조건에서 빠진다(조건 2 위반).
+- `EQ-WD-002`(용접 로봇 2호)는 이력이 모두 `DONE`이지만 이미 `RETIRED` 상태여서 `status = 'MAINTENANCE'` 조건에 걸리지 않는다(조건 1 위반).
+
+현재 시드에서 조건 1을 만족하는 설비는 `EQ-CB-002` 하나뿐이고, 그 설비는 조건 2에서 빠지므로 변경 결과는 0행이다. 이력이 없는 설비까지 대상으로 삼을지는 별도의 도메인 결정이며, 여기서는 원래 SQL을 유지하고 그 동작 범위를 설명한다.
 
 ```sql
 UPDATE equipment
@@ -451,17 +462,17 @@ WHERE equipment_id = 5 AND started_at >= '2026-07-01';
 ```
 
 ```text
-id | parent | notused | detail
+id | parent | notused | detail          
 ---+--------+---------+-----------------
-2  | 0      | 0       | SCAN maintenance
+2  | 0      | 216     | SCAN maintenance
 (1행)
 
-[변경] -1행 적용
+[변경] 인덱스 생성 완료: idx_maintenance_equipment_started (행 수 미적용)
 
-id | parent | notused | detail
----+--------+---------+-----------------------------------------
-3  | 0      | 0       | SEARCH maintenance USING INDEX idx_main…
+id | parent | notused | detail                                                                                            
+---+--------+---------+---------------------------------------------------------------------------------------------------
+3  | 0      | 50      | SEARCH maintenance USING INDEX idx_maintenance_equipment_started (equipment_id=? AND started_at>?)
 (1행)
 ```
 
-위에서 첫 번째 결과가 인덱스 생성 전(`SCAN maintenance`, 전체 훑기), 마지막 결과가 생성 후(`SEARCH ... USING INDEX ...`, 인덱스 탐색)다. 실행 계획의 `detail` 열은 표 폭에 맞춰 줄여 표시되며, 원본 전체 문구는 `results/Q15.txt`에 있다.
+위에서 첫 번째 결과가 인덱스 생성 전(`SCAN maintenance`, 전체 훑기), 마지막 결과가 생성 후(`SEARCH ... USING INDEX ...`, 인덱스 탐색)다. 실행 계획의 `detail` 열은 이제 줄이지 않고 원문 전체를 그대로 싣는다. 같은 문구가 `results/Q15.txt`에도 있다.

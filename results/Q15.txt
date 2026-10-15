@@ -2,12 +2,12 @@ Q15 — 정비 이력 조회에 인덱스를 붙인다.
 
 id | parent | notused | detail          
 ---+--------+---------+-----------------
-2  | 0      | 0       | SCAN maintenance
+2  | 0      | 216     | SCAN maintenance
 (1행)
 
-[변경] -1행 적용
+[변경] 인덱스 생성 완료: idx_maintenance_equipment_started (행 수 미적용)
 
-id | parent | notused | detail                                  
----+--------+---------+-----------------------------------------
-3  | 0      | 0       | SEARCH maintenance USING INDEX idx_main…
+id | parent | notused | detail                                                                                            
+---+--------+---------+---------------------------------------------------------------------------------------------------
+3  | 0      | 50      | SEARCH maintenance USING INDEX idx_maintenance_equipment_started (equipment_id=? AND started_at>?)
 (1행)

@@ -24,7 +24,12 @@ INDEX_QUERY = (
     "WHERE type = 'index' AND name NOT LIKE 'sqlite_%' ORDER BY name"
 )
 MIN_ROWS = 10  # 각 테이블 목표 최소 행 수
-CELL_LIMIT = 40
+DDL_STATEMENT = re.compile(r"^\s*(?:CREATE|DROP|ALTER)\b", re.IGNORECASE)
+DML_STATEMENT = re.compile(r"^\s*(?:INSERT|UPDATE|DELETE)\b", re.IGNORECASE)
+CREATE_INDEX_NAME = re.compile(
+    r"^\s*CREATE\s+(?:UNIQUE\s+)?INDEX\s+(?:IF\s+NOT\s+EXISTS\s+)?([\w.\"`\[\]]+)",
+    re.IGNORECASE,
+)
 
 
 def run_script(conn: sqlite3.Connection, path: Path) -> None:
@@ -60,17 +65,11 @@ def split_statements(body: list[str]) -> list[str]:
 
 
 def render_table(columns: list[str], rows: list[tuple]) -> str:
-    """결과를 고정 폭 텍스트 표로 만든다."""
+    """결과를 고정 폭 텍스트 표로 만든다. 결과 값을 자르지 않고 그대로 남긴다."""
     if not rows:
         return "(결과 행 없음)"
 
-    def cell(value: object) -> str:
-        if value is None:
-            return "NULL"
-        text = str(value)
-        return text if len(text) <= CELL_LIMIT else text[: CELL_LIMIT - 1] + "…"
-
-    grid = [[cell(v) for v in row] for row in rows]
+    grid = [["NULL" if v is None else str(v) for v in row] for row in rows]
     widths = [len(c) for c in columns]
     for row in grid:
         for i, value in enumerate(row):
@@ -82,13 +81,29 @@ def render_table(columns: list[str], rows: list[tuple]) -> str:
     return "\n".join(lines)
 
 
+def change_note(statement: str, cursor: sqlite3.Cursor) -> str:
+    """행을 바꾸지 않는 문장과 바꾸는 문장을 구분해 사람이 읽을 문구로 만든다.
+
+    인덱스·테이블 생성처럼 행 수를 세지 않는 문장은 rowcount가 -1로 나오므로
+    그 값을 그대로 행 수처럼 쓰지 않는다.
+    """
+    index_name = CREATE_INDEX_NAME.match(statement)
+    if index_name:
+        return f"[변경] 인덱스 생성 완료: {index_name.group(1)} (행 수 미적용)"
+    if DDL_STATEMENT.match(statement):
+        return "[변경] 스키마 반영 완료 (행 수 미적용)"
+    if DML_STATEMENT.match(statement):
+        return f"[변경] {cursor.rowcount}행 적용"
+    return "[완료] 행 수 미적용"
+
+
 def run_block(conn: sqlite3.Connection, statements: list[str]) -> str:
     """한 쿼리 묶음을 실행하고 결과 텍스트를 만든다."""
     chunks: list[str] = []
     for statement in statements:
         cursor = conn.execute(statement)
         if cursor.description is None:
-            chunks.append(f"[변경] {cursor.rowcount}행 적용")
+            chunks.append(change_note(statement, cursor))
             continue
         columns = [d[0] for d in cursor.description]
         rows = cursor.fetchall()
@@ -147,6 +162,11 @@ def main() -> int:
         summary.append(f"- {name}: {desc}")
 
     summary.append(f"- Q15 실행 후 등록된 인덱스: {[r[0] for r in conn.execute(INDEX_QUERY)]}")
+
+    # Q13(UPDATE)·Q14(DELETE)·Q15(CREATE INDEX)의 최종 상태를 파일에 확정한다. 파이썬 sqlite3는
+    # DML을 실행할 때 트랜잭션을 열고 자동으로 확정하지 않는다. 여기서 commit하지 않으면
+    # 캡처한 표는 바뀐 상태를 보여주는데, 다시 연 DB는 되돌려진 상태가 되어 서로 어긋난다.
+    conn.commit()
 
     # 보너스 1: 같은 요구를 JOIN과 서브쿼리 두 방식으로 풀어 비교한다.
     requirement = "정비 이력이 있는 설비만 고르기"
