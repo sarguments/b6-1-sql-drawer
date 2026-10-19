@@ -1,4 +1,4 @@
-Q10 — 정비가 2건 이상인 설비의 평균·최대 정비 시간을 본다. 집계 AVG + GROUP BY + HAVING.
+Q10 — 정비 2건 이상인 설비의 건수·평균·최대 시간을 계산하고 평균 시간이 긴 순서로 조회한다.
 
 asset_code | equipment_name | maintenance_count | avg_minutes | max_minutes
 -----------+----------------+-------------------+-------------+------------

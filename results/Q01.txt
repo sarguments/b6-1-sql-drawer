@@ -1,4 +1,4 @@
-Q01 — 가동 중(RUNNING) 설비를 라인·자산 코드 순으로 본다. WHERE 필터 + ORDER BY 정렬.
+Q01 — 가동 중(RUNNING)인 설비를 조회하고 라인 이름·자산 코드순으로 정렬한다.
 
 asset_code | name      | line_name | installed_on
 -----------+-----------+-----------+-------------

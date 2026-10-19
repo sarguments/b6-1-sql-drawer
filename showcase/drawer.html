@@ -7021,13 +7021,13 @@ module.exports = browser_default;
 });
 </script><script>window.Prism={manual:true};var _self="undefined"!=typeof window?window:"undefined"!=typeof WorkerGlobalScope&&self instanceof WorkerGlobalScope?self:{},Prism=function(e){var n=/(?:^|\s)lang(?:uage)?-([\w-]+)(?=\s|$)/i,t=0,r={},a={manual:e.Prism&&e.Prism.manual,disableWorkerMessageHandler:e.Prism&&e.Prism.disableWorkerMessageHandler,util:{encode:function e(n){return n instanceof i?new i(n.type,e(n.content),n.alias):Array.isArray(n)?n.map(e):n.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/\u00a0/g," ")},type:function(e){return Object.prototype.toString.call(e).slice(8,-1)},objId:function(e){return e.__id||Object.defineProperty(e,"__id",{value:++t}),e.__id},clone:function e(n,t){var r,i;switch(t=t||{},a.util.type(n)){case"Object":if(i=a.util.objId(n),t[i])return t[i];for(var l in r={},t[i]=r,n)n.hasOwnProperty(l)&&(r[l]=e(n[l],t));return r;case"Array":return i=a.util.objId(n),t[i]?t[i]:(r=[],t[i]=r,n.forEach((function(n,a){r[a]=e(n,t)})),r);default:return n}},getLanguage:function(e){for(;e;){var t=n.exec(e.className);if(t)return t[1].toLowerCase();e=e.parentElement}return"none"},setLanguage:function(e,t){e.className=e.className.replace(RegExp(n,"gi"),""),e.classList.add("language-"+t)},currentScript:function(){if("undefined"==typeof document)return null;if(document.currentScript&&"SCRIPT"===document.currentScript.tagName)return document.currentScript;try{throw new Error}catch(r){var e=(/at [^(\r\n]*\((.*):[^:]+:[^:]+\)$/i.exec(r.stack)||[])[1];if(e){var n=document.getElementsByTagName("script");for(var t in n)if(n[t].src==e)return n[t]}return null}},isActive:function(e,n,t){for(var r="no-"+n;e;){var a=e.classList;if(a.contains(n))return!0;if(a.contains(r))return!1;e=e.parentElement}return!!t}},languages:{plain:r,plaintext:r,text:r,txt:r,extend:function(e,n){var t=a.util.clone(a.languages[e]);for(var r in n)t[r]=n[r];return t},insertBefore:function(e,n,t,r){var i=(r=r||a.languages)[e],l={};for(var o in i)if(i.hasOwnProperty(o)){if(o==n)for(var s in t)t.hasOwnProperty(s)&&(l[s]=t[s]);t.hasOwnProperty(o)||(l[o]=i[o])}var u=r[e];return r[e]=l,a.languages.DFS(a.languages,(function(n,t){t===u&&n!=e&&(this[n]=l)})),l},DFS:function e(n,t,r,i){i=i||{};var l=a.util.objId;for(var o in n)if(n.hasOwnProperty(o)){t.call(n,o,n[o],r||o);var s=n[o],u=a.util.type(s);"Object"!==u||i[l(s)]?"Array"!==u||i[l(s)]||(i[l(s)]=!0,e(s,t,o,i)):(i[l(s)]=!0,e(s,t,null,i))}}},plugins:{},highlightAll:function(e,n){a.highlightAllUnder(document,e,n)},highlightAllUnder:function(e,n,t){var r={callback:t,container:e,selector:'code[class*="language-"], [class*="language-"] code, code[class*="lang-"], [class*="lang-"] code'};a.hooks.run("before-highlightall",r),r.elements=Array.prototype.slice.apply(r.container.querySelectorAll(r.selector)),a.hooks.run("before-all-elements-highlight",r);for(var i,l=0;i=r.elements[l++];)a.highlightElement(i,!0===n,r.callback)},highlightElement:function(n,t,r){var i=a.util.getLanguage(n),l=a.languages[i];a.util.setLanguage(n,i);var o=n.parentElement;o&&"pre"===o.nodeName.toLowerCase()&&a.util.setLanguage(o,i);var s={element:n,language:i,grammar:l,code:n.textContent};function u(e){s.highlightedCode=e,a.hooks.run("before-insert",s),s.element.innerHTML=s.highlightedCode,a.hooks.run("after-highlight",s),a.hooks.run("complete",s),r&&r.call(s.element)}if(a.hooks.run("before-sanity-check",s),(o=s.element.parentElement)&&"pre"===o.nodeName.toLowerCase()&&!o.hasAttribute("tabindex")&&o.setAttribute("tabindex","0"),!s.code)return a.hooks.run("complete",s),void(r&&r.call(s.element));if(a.hooks.run("before-highlight",s),s.grammar)if(t&&e.Worker){var c=new Worker(a.filename);c.onmessage=function(e){u(e.data)},c.postMessage(JSON.stringify({language:s.language,code:s.code,immediateClose:!0}))}else u(a.highlight(s.code,s.grammar,s.language));else u(a.util.encode(s.code))},highlight:function(e,n,t){var r={code:e,grammar:n,language:t};if(a.hooks.run("before-tokenize",r),!r.grammar)throw new Error('The language "'+r.language+'" has no grammar.');return r.tokens=a.tokenize(r.code,r.grammar),a.hooks.run("after-tokenize",r),i.stringify(a.util.encode(r.tokens),r.language)},tokenize:function(e,n){var t=n.rest;if(t){for(var r in t)n[r]=t[r];delete n.rest}var a=new s;return u(a,a.head,e),o(e,a,n,a.head,0),function(e){for(var n=[],t=e.head.next;t!==e.tail;)n.push(t.value),t=t.next;return n}(a)},hooks:{all:{},add:function(e,n){var t=a.hooks.all;t[e]=t[e]||[],t[e].push(n)},run:function(e,n){var t=a.hooks.all[e];if(t&&t.length)for(var r,i=0;r=t[i++];)r(n)}},Token:i};function i(e,n,t,r){this.type=e,this.content=n,this.alias=t,this.length=0|(r||"").length}function l(e,n,t,r){e.lastIndex=n;var a=e.exec(t);if(a&&r&&a[1]){var i=a[1].length;a.index+=i,a[0]=a[0].slice(i)}return a}function o(e,n,t,r,s,g){for(var f in t)if(t.hasOwnProperty(f)&&t[f]){var h=t[f];h=Array.isArray(h)?h:[h];for(var d=0;d<h.length;++d){if(g&&g.cause==f+","+d)return;var v=h[d],p=v.inside,m=!!v.lookbehind,y=!!v.greedy,k=v.alias;if(y&&!v.pattern.global){var x=v.pattern.toString().match(/[imsuy]*$/)[0];v.pattern=RegExp(v.pattern.source,x+"g")}for(var b=v.pattern||v,w=r.next,A=s;w!==n.tail&&!(g&&A>=g.reach);A+=w.value.length,w=w.next){var P=w.value;if(n.length>e.length)return;if(!(P instanceof i)){var E,S=1;if(y){if(!(E=l(b,A,e,m))||E.index>=e.length)break;var L=E.index,O=E.index+E[0].length,C=A;for(C+=w.value.length;L>=C;)C+=(w=w.next).value.length;if(A=C-=w.value.length,w.value instanceof i)continue;for(var j=w;j!==n.tail&&(C<O||"string"==typeof j.value);j=j.next)S++,C+=j.value.length;S--,P=e.slice(A,C),E.index-=A}else if(!(E=l(b,0,P,m)))continue;L=E.index;var N=E[0],_=P.slice(0,L),M=P.slice(L+N.length),W=A+P.length;g&&W>g.reach&&(g.reach=W);var I=w.prev;if(_&&(I=u(n,I,_),A+=_.length),c(n,I,S),w=u(n,I,new i(f,p?a.tokenize(N,p):N,k,N)),M&&u(n,w,M),S>1){var T={cause:f+","+d,reach:W};o(e,n,t,w.prev,A,T),g&&T.reach>g.reach&&(g.reach=T.reach)}}}}}}function s(){var e={value:null,prev:null,next:null},n={value:null,prev:e,next:null};e.next=n,this.head=e,this.tail=n,this.length=0}function u(e,n,t){var r=n.next,a={value:t,prev:n,next:r};return n.next=a,r.prev=a,e.length++,a}function c(e,n,t){for(var r=n.next,a=0;a<t&&r!==e.tail;a++)r=r.next;n.next=r,r.prev=n,e.length-=a}if(e.Prism=a,i.stringify=function e(n,t){if("string"==typeof n)return n;if(Array.isArray(n)){var r="";return n.forEach((function(n){r+=e(n,t)})),r}var i={type:n.type,content:e(n.content,t),tag:"span",classes:["token",n.type],attributes:{},language:t},l=n.alias;l&&(Array.isArray(l)?Array.prototype.push.apply(i.classes,l):i.classes.push(l)),a.hooks.run("wrap",i);var o="";for(var s in i.attributes)o+=" "+s+'="'+(i.attributes[s]||"").replace(/"/g,"&quot;")+'"';return"<"+i.tag+' class="'+i.classes.join(" ")+'"'+o+">"+i.content+"</"+i.tag+">"},!e.document)return e.addEventListener?(a.disableWorkerMessageHandler||e.addEventListener("message",(function(n){var t=JSON.parse(n.data),r=t.language,i=t.code,l=t.immediateClose;e.postMessage(a.highlight(i,a.languages[r],r)),l&&e.close()}),!1),a):a;var g=a.util.currentScript();function f(){a.manual||a.highlightAll()}if(g&&(a.filename=g.src,g.hasAttribute("data-manual")&&(a.manual=!0)),!a.manual){var h=document.readyState;"loading"===h||"interactive"===h&&g&&g.defer?document.addEventListener("DOMContentLoaded",f):window.requestAnimationFrame?window.requestAnimationFrame(f):window.setTimeout(f,16)}return a}(_self);"undefined"!=typeof module&&module.exports&&(module.exports=Prism),"undefined"!=typeof global&&(global.Prism=Prism);
 Prism.languages.sql={comment:{pattern:/(^|[^\\])(?:\/\*[\s\S]*?\*\/|(?:--|\/\/|#).*)/,lookbehind:!0},variable:[{pattern:/@(["'`])(?:\\[\s\S]|(?!\1)[^\\])+\1/,greedy:!0},/@[\w.$]+/],string:{pattern:/(^|[^@\\])("|')(?:\\[\s\S]|(?!\2)[^\\]|\2\2)*\2/,greedy:!0,lookbehind:!0},identifier:{pattern:/(^|[^@\\])`(?:\\[\s\S]|[^`\\]|``)*`/,greedy:!0,lookbehind:!0,inside:{punctuation:/^`|`$/}},function:/\b(?:AVG|COUNT|FIRST|FORMAT|LAST|LCASE|LEN|MAX|MID|MIN|MOD|NOW|ROUND|SUM|UCASE)(?=\s*\()/i,keyword:/\b(?:ACTION|ADD|AFTER|ALGORITHM|ALL|ALTER|ANALYZE|ANY|APPLY|AS|ASC|AUTHORIZATION|AUTO_INCREMENT|BACKUP|BDB|BEGIN|BERKELEYDB|BIGINT|BINARY|BIT|BLOB|BOOL|BOOLEAN|BREAK|BROWSE|BTREE|BULK|BY|CALL|CASCADED?|CASE|CHAIN|CHAR(?:ACTER|SET)?|CHECK(?:POINT)?|CLOSE|CLUSTERED|COALESCE|COLLATE|COLUMNS?|COMMENT|COMMIT(?:TED)?|COMPUTE|CONNECT|CONSISTENT|CONSTRAINT|CONTAINS(?:TABLE)?|CONTINUE|CONVERT|CREATE|CROSS|CURRENT(?:_DATE|_TIME|_TIMESTAMP|_USER)?|CURSOR|CYCLE|DATA(?:BASES?)?|DATE(?:TIME)?|DAY|DBCC|DEALLOCATE|DEC|DECIMAL|DECLARE|DEFAULT|DEFINER|DELAYED|DELETE|DELIMITERS?|DENY|DESC|DESCRIBE|DETERMINISTIC|DISABLE|DISCARD|DISK|DISTINCT|DISTINCTROW|DISTRIBUTED|DO|DOUBLE|DROP|DUMMY|DUMP(?:FILE)?|DUPLICATE|ELSE(?:IF)?|ENABLE|ENCLOSED|END|ENGINE|ENUM|ERRLVL|ERRORS|ESCAPED?|EXCEPT|EXEC(?:UTE)?|EXISTS|EXIT|EXPLAIN|EXTENDED|FETCH|FIELDS|FILE|FILLFACTOR|FIRST|FIXED|FLOAT|FOLLOWING|FOR(?: EACH ROW)?|FORCE|FOREIGN|FREETEXT(?:TABLE)?|FROM|FULL|FUNCTION|GEOMETRY(?:COLLECTION)?|GLOBAL|GOTO|GRANT|GROUP|HANDLER|HASH|HAVING|HOLDLOCK|HOUR|IDENTITY(?:COL|_INSERT)?|IF|IGNORE|IMPORT|INDEX|INFILE|INNER|INNODB|INOUT|INSERT|INT|INTEGER|INTERSECT|INTERVAL|INTO|INVOKER|ISOLATION|ITERATE|JOIN|KEYS?|KILL|LANGUAGE|LAST|LEAVE|LEFT|LEVEL|LIMIT|LINENO|LINES|LINESTRING|LOAD|LOCAL|LOCK|LONG(?:BLOB|TEXT)|LOOP|MATCH(?:ED)?|MEDIUM(?:BLOB|INT|TEXT)|MERGE|MIDDLEINT|MINUTE|MODE|MODIFIES|MODIFY|MONTH|MULTI(?:LINESTRING|POINT|POLYGON)|NATIONAL|NATURAL|NCHAR|NEXT|NO|NONCLUSTERED|NULLIF|NUMERIC|OFF?|OFFSETS?|ON|OPEN(?:DATASOURCE|QUERY|ROWSET)?|OPTIMIZE|OPTION(?:ALLY)?|ORDER|OUT(?:ER|FILE)?|OVER|PARTIAL|PARTITION|PERCENT|PIVOT|PLAN|POINT|POLYGON|PRECEDING|PRECISION|PREPARE|PREV|PRIMARY|PRINT|PRIVILEGES|PROC(?:EDURE)?|PUBLIC|PURGE|QUICK|RAISERROR|READS?|REAL|RECONFIGURE|REFERENCES|RELEASE|RENAME|REPEAT(?:ABLE)?|REPLACE|REPLICATION|REQUIRE|RESIGNAL|RESTORE|RESTRICT|RETURN(?:ING|S)?|REVOKE|RIGHT|ROLLBACK|ROUTINE|ROW(?:COUNT|GUIDCOL|S)?|RTREE|RULE|SAVE(?:POINT)?|SCHEMA|SECOND|SELECT|SERIAL(?:IZABLE)?|SESSION(?:_USER)?|SET(?:USER)?|SHARE|SHOW|SHUTDOWN|SIMPLE|SMALLINT|SNAPSHOT|SOME|SONAME|SQL|START(?:ING)?|STATISTICS|STATUS|STRIPED|SYSTEM_USER|TABLES?|TABLESPACE|TEMP(?:ORARY|TABLE)?|TERMINATED|TEXT(?:SIZE)?|THEN|TIME(?:STAMP)?|TINY(?:BLOB|INT|TEXT)|TOP?|TRAN(?:SACTIONS?)?|TRIGGER|TRUNCATE|TSEQUAL|TYPES?|UNBOUNDED|UNCOMMITTED|UNDEFINED|UNION|UNIQUE|UNLOCK|UNPIVOT|UNSIGNED|UPDATE(?:TEXT)?|USAGE|USE|USER|USING|VALUES?|VAR(?:BINARY|CHAR|CHARACTER|YING)|VIEW|WAITFOR|WARNINGS|WHEN|WHERE|WHILE|WITH(?: ROLLUP|IN)?|WORK|WRITE(?:TEXT)?|YEAR)\b/i,boolean:/\b(?:FALSE|NULL|TRUE)\b/i,number:/\b0x[\da-f]+\b|\b\d+(?:\.\d*)?|\B\.\d+\b/i,operator:/[-+*\/=%^~]|&&?|\|\|?|!=?|<(?:=>?|<|>)?|>[>=]?|\b(?:AND|BETWEEN|DIV|ILIKE|IN|IS|LIKE|NOT|OR|REGEXP|RLIKE|SOUNDS LIKE|XOR)\b/i,punctuation:/[;[\]()`,.]/};</script><script id="evidence" type="application/json">{
-  "created": "2026-10-15T17:41:18.219340+00:00",
+  "created": "2026-10-19T06:09:43.406563+00:00",
   "source": "..",
   "sqlite": "3.53.4",
   "digests": {
     "schema.sql": "7c909882348e55e2f5d48000059db60902e060db7bc6fd07b11dcdf92eacc7a5",
     "seed.sql": "173eb5725773a3cfd058d42366e4d133272517e2be87a970a0fd31cbf951ff72",
-    "queries.sql": "66191ba2d8c96d64ff267862d955e868dbefd0ecb366f9fc0680dd4d81bd750d"
+    "queries.sql": "2c73de4e64b85b02c86c28967db1bceaab39b8f7f8ea819b662a53751ad80d52"
   },
   "tables": {
     "equipment": [
@@ -8240,7 +8240,7 @@ Prism.languages.sql={comment:{pattern:/(^|[^\\])(?:\/\*[\s\S]*?\*\/|(?:--|\/\/|#
   "queries": [
     {
       "id": "Q01",
-      "title": "가동 중(RUNNING) 설비를 라인·자산 코드 순으로 본다. WHERE 필터 + ORDER BY 정렬.",
+      "title": "가동 중(RUNNING)인 설비를 조회하고 라인 이름·자산 코드순으로 정렬한다.",
       "sql": "SELECT asset_code, name, line_name, installed_on\nFROM equipment\nWHERE status = 'RUNNING'\nORDER BY line_name, asset_code;",
       "outputs": [
         {
@@ -8305,7 +8305,7 @@ Prism.languages.sql={comment:{pattern:/(^|[^\\])(?:\/\*[\s\S]*?\*\/|(?:--|\/\/|#
     },
     {
       "id": "Q02",
-      "title": "가장 최근 정비 5건만 본다. ORDER BY 내림차순 + LIMIT.",
+      "title": "정비 시작 시각이 최근인 순서로 정렬해 앞의 5건을 조회한다.",
       "sql": "SELECT id, equipment_id, kind, started_at, duration_min\nFROM maintenance\nORDER BY started_at DESC\nLIMIT 5;",
       "outputs": [
         {
@@ -8358,7 +8358,7 @@ Prism.languages.sql={comment:{pattern:/(^|[^\\])(?:\/\*[\s\S]*?\*\/|(?:--|\/\/|#
     },
     {
       "id": "Q03",
-      "title": "고장 정비(BREAKDOWN) 이력만 본다. 값이 정해진 컬럼에 대한 WHERE 비교.",
+      "title": "고장 정비(BREAKDOWN) 기록만 조회하고 시작 시각순으로 정렬한다.",
       "sql": "SELECT id, equipment_id, technician_id, started_at, duration_min, result\nFROM maintenance\nWHERE kind = 'BREAKDOWN'\nORDER BY started_at;",
       "outputs": [
         {
@@ -8481,7 +8481,7 @@ Prism.languages.sql={comment:{pattern:/(^|[^\\])(?:\/\*[\s\S]*?\*\/|(?:--|\/\/|#
     },
     {
       "id": "Q04",
-      "title": "최근에 설치한 설비(2026-09-01 이후)를 본다. 날짜 범위 비교(DATE 타입).",
+      "title": "2026-09-01부터 설치한 설비를 조회하고 설치일이 최근인 순서로 정렬한다.",
       "sql": "SELECT asset_code, name, installed_on, status\nFROM equipment\nWHERE installed_on >= '2026-09-01'\nORDER BY installed_on DESC;",
       "outputs": [
         {
@@ -8510,7 +8510,7 @@ Prism.languages.sql={comment:{pattern:/(^|[^\\])(?:\/\*[\s\S]*?\*\/|(?:--|\/\/|#
     },
     {
       "id": "Q05",
-      "title": "정비 이력을 설비 이름·담당자 이름과 함께 본다. INNER JOIN 2개(연결된 행이 있는 것만).",
+      "title": "고장 정비 기록에 설비명·담당자명을 연결하고 정비 시작 시각순으로 조회한다.",
       "sql": "SELECT m.id, e.name AS equipment_name, t.name AS technician_name, m.kind, m.started_at\nFROM maintenance AS m\nINNER JOIN equipment AS e ON e.id = m.equipment_id\nINNER JOIN technician AS t ON t.id = m.technician_id\nWHERE m.kind = 'BREAKDOWN'\nORDER BY m.started_at;",
       "outputs": [
         {
@@ -8619,7 +8619,7 @@ Prism.languages.sql={comment:{pattern:/(^|[^\\])(?:\/\*[\s\S]*?\*\/|(?:--|\/\/|#
     },
     {
       "id": "Q06",
-      "title": "설비별 부품 목록을 본다. INNER JOIN — 설비와 부품을 한 번에 뽑는다.",
+      "title": "부품에 설비 정보를 연결해 자산 코드·부품 번호순으로 조회한다.",
       "sql": "SELECT e.asset_code, e.name AS equipment_name, c.part_no, c.name AS part_name, c.quantity\nFROM component AS c\nINNER JOIN equipment AS e ON e.id = c.equipment_id\nORDER BY e.asset_code, c.part_no;",
       "outputs": [
         {
@@ -8805,7 +8805,7 @@ Prism.languages.sql={comment:{pattern:/(^|[^\\])(?:\/\*[\s\S]*?\*\/|(?:--|\/\/|#
     },
     {
       "id": "Q07",
-      "title": "설비별 정비 건수를 본다. LEFT JOIN — 정비 이력이 없는 설비도 0건으로 나온다.",
+      "title": "설비별 정비 건수를 세고 건수가 많은 순서로 조회한다. 정비 기록이 없는 설비도 0건으로 남긴다.",
       "sql": "SELECT e.asset_code, e.name AS equipment_name, COUNT(m.id) AS maintenance_count\nFROM equipment AS e\nLEFT JOIN maintenance AS m ON m.equipment_id = e.id\nGROUP BY e.id, e.asset_code, e.name\nORDER BY maintenance_count DESC, e.asset_code;",
       "outputs": [
         {
@@ -8881,7 +8881,7 @@ Prism.languages.sql={comment:{pattern:/(^|[^\\])(?:\/\*[\s\S]*?\*\/|(?:--|\/\/|#
     },
     {
       "id": "Q08",
-      "title": "설비별 알람을 본다. LEFT JOIN — 알람이 한 번도 없는 설비도 목록에 남는다.",
+      "title": "설비별 알람을 조회한다. 알람이 없는 설비도 남기고 알람 정보는 NULL로 표시한다.",
       "sql": "SELECT e.asset_code, e.name AS equipment_name, a.alarm_code, a.level, a.occurred_at\nFROM equipment AS e\nLEFT JOIN alarm_log AS a ON a.equipment_id = e.id\nORDER BY e.asset_code, a.occurred_at;",
       "outputs": [
         {
@@ -9032,7 +9032,7 @@ Prism.languages.sql={comment:{pattern:/(^|[^\\])(?:\/\*[\s\S]*?\*\/|(?:--|\/\/|#
     },
     {
       "id": "Q09",
-      "title": "담당자별 총 정비 시간을 본다. 집계 SUM + GROUP BY.",
+      "title": "정비 기록이 있는 담당자별 건수·총 시간을 계산하고 총 시간이 긴 순서로 조회한다.",
       "sql": "SELECT t.employee_no, t.name AS technician_name, t.team,\n       COUNT(m.id) AS maintenance_count,\n       SUM(m.duration_min) AS total_minutes\nFROM technician AS t\nINNER JOIN maintenance AS m ON m.technician_id = t.id\nGROUP BY t.id, t.employee_no, t.name, t.team\nORDER BY total_minutes DESC;",
       "outputs": [
         {
@@ -9120,7 +9120,7 @@ Prism.languages.sql={comment:{pattern:/(^|[^\\])(?:\/\*[\s\S]*?\*\/|(?:--|\/\/|#
     },
     {
       "id": "Q10",
-      "title": "정비가 2건 이상인 설비의 평균·최대 정비 시간을 본다. 집계 AVG + GROUP BY + HAVING.",
+      "title": "정비 2건 이상인 설비의 건수·평균·최대 시간을 계산하고 평균 시간이 긴 순서로 조회한다.",
       "sql": "SELECT e.asset_code, e.name AS equipment_name,\n       COUNT(m.id) AS maintenance_count,\n       ROUND(AVG(m.duration_min), 1) AS avg_minutes,\n       MAX(m.duration_min) AS max_minutes\nFROM maintenance AS m\nINNER JOIN equipment AS e ON e.id = m.equipment_id\nGROUP BY e.id, e.asset_code, e.name\nHAVING COUNT(m.id) >= 2\nORDER BY avg_minutes DESC;",
       "outputs": [
         {
@@ -9208,7 +9208,7 @@ Prism.languages.sql={comment:{pattern:/(^|[^\\])(?:\/\*[\s\S]*?\*\/|(?:--|\/\/|#
     },
     {
       "id": "Q11",
-      "title": "라인별 알람 건수를 본다. 집계 COUNT + GROUP BY, ERROR 건수는 조건부 집계로 센다.",
+      "title": "알람이 있는 라인별 전체·ERROR 알람 건수를 세고 전체 건수가 많은 순서로 조회한다.",
       "sql": "SELECT e.line_name,\n       COUNT(a.id) AS alarm_count,\n       SUM(CASE WHEN a.level = 'ERROR' THEN 1 ELSE 0 END) AS error_count\nFROM alarm_log AS a\nINNER JOIN equipment AS e ON e.id = a.equipment_id\nGROUP BY e.line_name\nORDER BY alarm_count DESC;",
       "outputs": [
         {
@@ -9254,7 +9254,7 @@ Prism.languages.sql={comment:{pattern:/(^|[^\\])(?:\/\*[\s\S]*?\*\/|(?:--|\/\/|#
     },
     {
       "id": "Q12",
-      "title": "정비 이력이 한 번도 없는 설비를 찾는다. 서브쿼리(NOT EXISTS).",
+      "title": "정비 기록이 없는 설비를 찾아 자산 코드순으로 조회한다.",
       "sql": "SELECT e.asset_code, e.name AS equipment_name, e.installed_on, e.status\nFROM equipment AS e\nWHERE NOT EXISTS (\n    SELECT 1 FROM maintenance AS m WHERE m.equipment_id = e.id\n)\nORDER BY e.asset_code;",
       "outputs": [
         {
@@ -9277,7 +9277,7 @@ Prism.languages.sql={comment:{pattern:/(^|[^\\])(?:\/\*[\s\S]*?\*\/|(?:--|\/\/|#
     },
     {
       "id": "Q13",
-      "title": "정비가 끝난(DONE) 이력만 있는 MAINTENANCE 상태 설비를 가동(RUNNING)으로 되돌린다. UPDATE.",
+      "title": "미완료 정비 기록이 없는 MAINTENANCE 설비를 RUNNING으로 바꾼다. 정비 기록이 0건인 설비도 포함한다.",
       "sql": "UPDATE equipment\nSET status = 'RUNNING'\nWHERE status = 'MAINTENANCE'\n  AND NOT EXISTS (\n      SELECT 1 FROM maintenance AS m\n      WHERE m.equipment_id = equipment.id AND m.result \u003c> 'DONE'\n  );\n\nSELECT asset_code, name, status FROM equipment WHERE asset_code IN ('EQ-CB-002', 'EQ-WD-002') ORDER BY asset_code;",
       "outputs": [
         {
@@ -11040,7 +11040,7 @@ Prism.languages.sql={comment:{pattern:/(^|[^\\])(?:\/\*[\s\S]*?\*\/|(?:--|\/\/|#
     },
     {
       "id": "Q14",
-      "title": "처리 완료(cleared_at 있음)된 WARN 알람 중 오래된 것(2026-08-01 이전)을 지운다. DELETE.",
+      "title": "처리 완료 시각이 2026-08-01 이전인 WARN 알람을 삭제한다.",
       "sql": "DELETE FROM alarm_log\nWHERE level = 'WARN'\n  AND cleared_at IS NOT NULL\n  AND cleared_at \u003c '2026-08-01';\n\nSELECT level, COUNT(*) AS remaining_count FROM alarm_log GROUP BY level ORDER BY level;",
       "outputs": [
         {
@@ -12784,7 +12784,7 @@ Prism.languages.sql={comment:{pattern:/(^|[^\\])(?:\/\*[\s\S]*?\*\/|(?:--|\/\/|#
     },
     {
       "id": "Q15",
-      "title": "정비 이력 조회에 인덱스를 붙인다.",
+      "title": "설비·기간 조회의 인덱스 적용 전후 실행 계획을 비교한다.",
       "sql": "EXPLAIN QUERY PLAN\nSELECT id, started_at, duration_min FROM maintenance\nWHERE equipment_id = 5 AND started_at >= '2026-07-01';\n\nCREATE INDEX idx_maintenance_equipment_started ON maintenance (equipment_id, started_at);\n\nEXPLAIN QUERY PLAN\nSELECT id, started_at, duration_min FROM maintenance\nWHERE equipment_id = 5 AND started_at >= '2026-07-01';",
       "outputs": [
         {
@@ -13235,20 +13235,21 @@ function sqlHTML(){
 }
 function resultHTML(){
  const q=qOf(state.q);
- const outs=q.id==='Q15'?[q.outputs[state.after?2:0],EVIDENCE.indexMatches]:q.outputs;
- return outs.map(o=>o.columns.length
+ const titles=q.id==='Q15'?['인덱스 적용 전 실행 계획','인덱스 적용 후 실행 계획','공통 조회 결과']:null;
+ const outs=titles?[q.outputs[0],q.outputs[2],EVIDENCE.indexMatches]:q.outputs;
+ return outs.map((o,i)=>(titles?'<h3>'+titles[i]+'</h3>':'')+(o.columns.length
   ?'<div class="scroll" role="region" tabindex="0" aria-label="실행 결과">'+'<table><thead><tr>'+o.columns.map(c=>'<th scope="col">'+esc(c)+'</th>').join('')+'</tr></thead><tbody>'+o.rows.map(r=>'<tr>'+r.map(v=>'<td>'+esc(v)+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>'
-  :o.affected>=0?'<p class="count">변경 '+o.affected+'행</p>':'<p class="count">인덱스 생성</p>').join('');
+  :o.affected>=0?'<p class="count">변경 '+o.affected+'행</p>':'<p class="count">인덱스 생성</p>')).join('');
 }
 function note(){
  const q=qOf(state.q);
  if(q.id==='Q13')return '조건에 맞는 설비가 없어 바뀐 행은 0행입니다. 아래 두 행은 UPDATE 뒤 상태 확인 결과입니다(협동로봇 셀 2호는 MAINTENANCE, 용접 로봇 2호는 RETIRED). 이 SQL은 정비 이력이 0건인 MAINTENANCE 설비도 대상으로 삼습니다.';
  if(q.id==='Q14'){
   if(state.after)return '처리 완료된 오래된 WARN 2행(alarm_log #1·#17)을 삭제했습니다. 알람은 18행에서 16행이 됩니다. 두 행은 표에서 사라집니다.';
-  return '조건에 맞는 알람 2행(alarm_log #1·#17)이 줄 그은 삭제 대상으로 켜졌습니다. 변경 후를 누르면 두 행이 표에서 사라집니다.';
+  return '조건에 맞는 알람 2행(alarm_log #1·#17)을 빨간 취소선으로 표시합니다. 변경 후를 누르면 두 행이 표에서 사라집니다.';
  }
  if(q.id==='Q15')return '인덱스를 만들어도 조회 결과는 정비 id 11·12·30 3행으로 같습니다. 실행 계획만 SCAN에서 SEARCH로 바뀝니다.';
- if(q.id==='Q12')return '정비 이력이 한 번도 없는 설비는 EQ-AG-001(이동 로봇 1호, id 12) 한 대입니다. NOT EXISTS 조건에 걸리는 설비 1행만 켜집니다.';
+ if(q.id==='Q12')return '정비 이력이 한 번도 없는 설비는 EQ-AG-001(이동 로봇 1호, id 12) 한 대입니다. 조건에 맞는 설비 1행을 강조합니다.';
  if(q.id==='Q05')return '고장 정비(BREAKDOWN)만 남긴 JOIN 결과 13행입니다. 전체 정비 30행과 다릅니다.';
  const counts=q.outputs.filter(o=>o.columns.length).map(o=>o.rows.length);
  return q.id+' 결과 '+(counts.length?counts[0]+'행':'')+'입니다.';
@@ -13289,7 +13290,7 @@ function update(){
  $('#table-heading').textContent='queries.sql · '+state.q+' · '+titleOf(qOf(state.q));
  $('#query-picker').value=state.q;
  $('#query-explanation').textContent=QUERY_EXPLANATIONS[state.q];
- $('#before-after').hidden=!['Q13','Q14','Q15'].includes(state.q);
+ $('#before-after').hidden=!['Q13','Q14'].includes(state.q);
  $('#before').setAttribute('aria-pressed',String(!state.after));
  $('#after').setAttribute('aria-pressed',String(state.after));
  $('#fk-check').setAttribute('aria-pressed',String(state.fk));

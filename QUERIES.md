@@ -1,6 +1,6 @@
 # B6-1 핵심 쿼리 15개 — 설명·SQL·실행 결과
 
-쿼리 15개를 한 쿼리마다 한 줄 설명 + SQL 본문 + 실행 결과 전체로 묶었다.
+쿼리별로 조회·변경 조건을 설명하고 SQL과 실행 결과를 함께 정리했다.
 쿼리 본문의 원본은 [`queries.sql`](queries.sql)이고, 실행 결과의 원본은 [`results/`](results)의 `Qxx.txt`다.
 결과는 `python3 scripts/capture_results.py`로 다시 만든다.
 
@@ -11,8 +11,8 @@
 | [Q01](#q01--가동-중-설비-목록-where--order-by) | 기본 조회 | 가동 중 설비 목록 (`WHERE` + `ORDER BY`) |
 | [Q02](#q02--최근-정비-5건-order-by--limit) | 기본 조회 | 최근 정비 5건 (`ORDER BY` + `LIMIT`) |
 | [Q03](#q03--고장-정비-이력만-where-값-비교) | 기본 조회 | 고장 정비 이력만 (`WHERE` 값 비교) |
-| [Q04](#q04--2026-09-01-이후-설치-설비-date-범위-비교) | 기본 조회 | 2026-09-01 이후 설치 설비 (`DATE` 범위 비교) |
-| [Q05](#q05--정비-이력--설비--담당자-inner-join-2개) | 조인 | 정비 이력 + 설비 + 담당자 (`INNER JOIN` 2개) |
+| [Q04](#q04--2026-09-01부터-설치한-설비-조회) | 기본 조회 | 2026-09-01부터 설치한 설비 조회 |
+| [Q05](#q05--고장-정비에-설비명담당자명-연결-inner-join) | 조인 | 고장 정비에 설비명·담당자명 연결 (`INNER JOIN`) |
 | [Q06](#q06--설비별-부품-목록-inner-join) | 조인 | 설비별 부품 목록 (`INNER JOIN`) |
 | [Q07](#q07--설비별-정비-건수-left-join--count) | 조인 | 설비별 정비 건수 (`LEFT JOIN` + `COUNT`) |
 | [Q08](#q08--설비별-알람-left-join) | 조인 | 설비별 알람 (`LEFT JOIN`) |
@@ -20,7 +20,7 @@
 | [Q10](#q10--정비-2건-이상-설비의-평균최대-시간-avg--group-by--having) | 집계 | 정비 2건 이상 설비의 평균·최대 시간 (`AVG` + `GROUP BY` + `HAVING`) |
 | [Q11](#q11--라인별-알람-건수-count--group-by) | 집계 | 라인별 알람 건수 (`COUNT` + `GROUP BY`) |
 | [Q12](#q12--정비-이력이-없는-설비-not-exists) | 서브쿼리 | 정비 이력이 없는 설비 찾기 (`NOT EXISTS`) |
-| [Q13](#q13--정비-완료-설비를-가동-상태로-되돌리기-update) | 수정 | 정비 완료 설비를 가동 상태로 되돌리기 (`UPDATE`) |
+| [Q13](#q13--미완료-이력이-없는-설비를-가동-상태로-되돌리기-update) | 수정 | 미완료 정비 기록이 없는 정비 중 설비를 가동 상태로 변경 (`UPDATE`, 이력 0건 포함) |
 | [Q14](#q14--처리-완료된-오래된-warn-알람-지우기-delete) | 삭제 | 처리 완료된 오래된 `WARN` 알람 지우기 (`DELETE`) |
 | [Q15](#q15--정비-이력-조회-인덱스-생성--적용-이유) | 인덱스 | 정비 이력 조회 인덱스 생성 + 적용 이유 |
 
@@ -30,7 +30,7 @@
 
 ## Q01 — 가동 중 설비 목록 (`WHERE` + `ORDER BY`)
 
-가동 중(RUNNING) 설비를 라인·자산 코드 순으로 본다. `WHERE` 필터 + `ORDER BY` 정렬.
+가동 중(RUNNING)인 설비를 조회하고 라인 이름·자산 코드순으로 정렬한다.
 
 ```sql
 SELECT asset_code, name, line_name, installed_on
@@ -55,7 +55,7 @@ EQ-PL-001  | 포장기 1호    | 포장 라인     | 2022-09-27
 
 ## Q02 — 최근 정비 5건 (`ORDER BY` + `LIMIT`)
 
-가장 최근 정비 5건만 본다. `ORDER BY` 내림차순 + `LIMIT`.
+정비 시작 시각이 최근인 순서로 정렬해 앞의 5건을 조회한다.
 
 ```sql
 SELECT id, equipment_id, kind, started_at, duration_min
@@ -77,7 +77,7 @@ id | equipment_id | kind      | started_at          | duration_min
 
 ## Q03 — 고장 정비 이력만 (`WHERE` 값 비교)
 
-고장 정비(BREAKDOWN) 이력만 본다. 값이 정해진 컬럼에 대한 `WHERE` 비교.
+고장 정비(BREAKDOWN) 기록만 조회하고 시작 시각순으로 정렬한다.
 
 ```sql
 SELECT id, equipment_id, technician_id, started_at, duration_min, result
@@ -105,9 +105,9 @@ id | equipment_id | technician_id | started_at          | duration_min | result
 (13행)
 ```
 
-## Q04 — 2026-09-01 이후 설치 설비 (`DATE` 범위 비교)
+## Q04 — 2026-09-01부터 설치한 설비 조회
 
-최근에 설치한 설비(2026-09-01 이후)를 본다. 날짜 범위 비교(`DATE` 타입).
+2026-09-01부터 설치한 설비를 조회하고 설치일이 최근인 순서로 정렬한다. 현재 날짜 문자열은 형식을 통일해 저장했다.
 
 ```sql
 SELECT asset_code, name, installed_on, status
@@ -124,9 +124,9 @@ EQ-CB-002  | 협동로봇 셀 2호 | 2026-09-05   | MAINTENANCE
 (2행)
 ```
 
-## Q05 — 정비 이력 + 설비 + 담당자 (`INNER JOIN` 2개)
+## Q05 — 고장 정비에 설비명·담당자명 연결 (`INNER JOIN`)
 
-정비 이력을 설비 이름·담당자 이름과 함께 본다. `INNER JOIN` 2개(연결된 행이 있는 것만).
+고장 정비 기록에 설비명·담당자명을 연결하고 정비 시작 시각순으로 조회한다.
 
 ```sql
 SELECT m.id, e.name AS equipment_name, t.name AS technician_name, m.kind, m.started_at
@@ -158,7 +158,7 @@ id | equipment_name | technician_name | kind      | started_at
 
 ## Q06 — 설비별 부품 목록 (`INNER JOIN`)
 
-설비별 부품 목록을 본다. `INNER JOIN` — 설비와 부품을 한 번에 뽑는다.
+부품에 설비 정보를 연결해 자산 코드·부품 번호순으로 조회한다.
 
 ```sql
 SELECT e.asset_code, e.name AS equipment_name, c.part_no, c.name AS part_name, c.quantity
@@ -199,7 +199,7 @@ EQ-WD-002  | 용접 로봇 2호       | WD-TRC-012 | 토치 팁       | 2
 
 ## Q07 — 설비별 정비 건수 (`LEFT JOIN` + `COUNT`)
 
-설비별 정비 건수를 본다. `LEFT JOIN` — 정비 이력이 없는 설비도 0건으로 나온다.
+설비별 정비 건수를 세고 건수가 많은 순서로 조회한다. 정비 기록이 없는 설비도 0건으로 남긴다.
 `maintenance`에 이력이 없는 `EQ-AG-001`(이동 로봇 1호)이 그 예다.
 
 ```sql
@@ -230,7 +230,7 @@ EQ-AG-001  | 이동 로봇 1호       | 0
 
 ## Q08 — 설비별 알람 (`LEFT JOIN`)
 
-설비별 알람을 본다. `LEFT JOIN` — 알람이 한 번도 없는 설비도 목록에 남는다.
+설비별 알람을 조회한다. 알람이 없는 설비도 남기고 알람 정보는 NULL로 표시한다.
 `EQ-AG-001`(이동 로봇 1호)은 알람이 없어 값이 `NULL`로 나온다.
 
 ```sql
@@ -267,7 +267,7 @@ EQ-WD-002  | 용접 로봇 2호       | GUN_DAMAGE     | ERROR | 2026-06-27 16:5
 
 ## Q09 — 담당자별 총 정비 시간 (`SUM` + `GROUP BY`)
 
-담당자별 총 정비 시간을 본다. 집계 `SUM` + `GROUP BY`.
+정비 기록이 있는 담당자별 건수·총 시간을 계산하고 총 시간이 긴 순서로 조회한다.
 
 ```sql
 SELECT t.employee_no, t.name AS technician_name, t.team,
@@ -297,7 +297,7 @@ TEC-1004    | 최민지             | 정비2팀 | 2                 | 100
 
 ## Q10 — 정비 2건 이상 설비의 평균·최대 시간 (`AVG` + `GROUP BY` + `HAVING`)
 
-`GROUP BY`로 설비별로 묶고, `HAVING COUNT(m.id) >= 2`로 2건 이상만 남겨 평균 소요 시간 순으로 본다.
+설비별 정비 건수·평균·최대 시간을 계산하고, 정비 2건 이상인 설비만 평균 시간이 긴 순서로 조회한다.
 
 ```sql
 SELECT e.asset_code, e.name AS equipment_name,
@@ -329,7 +329,7 @@ EQ-CV-002  | 컨베이어 2호        | 2                 | 50.0        | 65
 
 ## Q11 — 라인별 알람 건수 (`COUNT` + `GROUP BY`)
 
-라인별 알람 건수를 본다. 집계 `COUNT` + `GROUP BY`, `ERROR` 건수는 조건부 집계로 센다.
+알람이 있는 라인별 전체·ERROR 알람 건수를 세고 전체 건수가 많은 순서로 조회한다.
 
 ```sql
 SELECT e.line_name,
@@ -355,7 +355,7 @@ line_name | alarm_count | error_count
 
 ## Q12 — 정비 이력이 없는 설비 (`NOT EXISTS`)
 
-정비 이력이 한 번도 없는 설비를 찾는다. 서브쿼리(`NOT EXISTS`).
+정비 기록이 없는 설비를 찾아 자산 코드순으로 조회한다.
 
 단계별 분해:
 
@@ -383,7 +383,7 @@ EQ-AG-001  | 이동 로봇 1호       | 2026-09-20   | IDLE
 
 ## Q13 — 미완료 이력이 없는 설비를 가동 상태로 되돌리기 (`UPDATE`)
 
-`MAINTENANCE` 상태이면서 `DONE`이 아닌 정비 이력이 없는 설비를 `RUNNING`으로 바꾼다. `UPDATE`. 정비 이력이 1건 이상 존재하는지는 검사하지 않는다.
+`MAINTENANCE` 상태이면서 `DONE`이 아닌 정비 기록이 없는 설비를 `RUNNING`으로 바꾼다. 정비 기록이 0건인 설비도 포함한다.
 
 조건을 정확히 읽으면 두 가지다.
 
@@ -395,7 +395,7 @@ EQ-AG-001  | 이동 로봇 1호       | 2026-09-20   | IDLE
 - `EQ-CB-002`(협동로봇 셀 2호)는 `MAINTENANCE` 상태지만 정비 이력에 `DONE`이 아닌 `REWORK`가 있어 `NOT EXISTS` 조건에서 빠진다(조건 2 위반).
 - `EQ-WD-002`(용접 로봇 2호)는 이력이 모두 `DONE`이지만 이미 `RETIRED` 상태여서 `status = 'MAINTENANCE'` 조건에 걸리지 않는다(조건 1 위반).
 
-현재 시드에서 조건 1을 만족하는 설비는 `EQ-CB-002` 하나뿐이고, 그 설비는 조건 2에서 빠지므로 변경 결과는 0행이다. 이력이 없는 설비까지 대상으로 삼을지는 별도의 도메인 결정이며, 여기서는 원래 SQL을 유지하고 그 동작 범위를 설명한다.
+현재 샘플에서 조건 1을 만족하는 설비는 `EQ-CB-002` 하나뿐이고, 그 설비는 조건 2에서 빠지므로 변경 결과는 0행이다. 정비 이력이 없는 설비도 변경 조건에 포함된다.
 
 ```sql
 UPDATE equipment
@@ -421,7 +421,7 @@ EQ-WD-002  | 용접 로봇 2호  | RETIRED
 
 ## Q14 — 처리 완료된 오래된 WARN 알람 지우기 (`DELETE`)
 
-처리 완료(`cleared_at` 있음)된 WARN 알람 중 오래된 것(2026-08-01 이전)을 지운다. `DELETE`.
+처리 완료 시각(`cleared_at`)이 2026-08-01 이전인 WARN 알람을 삭제한다. 날짜 조건은 발생 시각이 아닌 처리 완료 시각에 적용한다.
 아래 확인 조회는 남은 알람 수를 등급별로 본다.
 
 ```sql
@@ -445,9 +445,9 @@ WARN  | 8
 
 ## Q15 — 정비 이력 조회 인덱스 생성 + 적용 이유
 
-정비 이력 조회에 인덱스를 붙인다.
+설비 5번에서 2026-07-01 이상인 시작 시각의 정비 기록을 조회한다. 이 조건에 맞춰 `(equipment_id, started_at)` 복합 인덱스를 만든다.
 
-적용 이유: 화면 조회는 "설비 하나의 기간별 정비 이력"이 가장 잦다. 인덱스가 없으면 그 조회가 매번 `maintenance` 전체를 훑는다. `(equipment_id, started_at)` 순서로 두면 설비로 먼저 좁히고 그 안에서 기간을 자를 수 있다. 아래 `EXPLAIN QUERY PLAN` 두 줄이 인덱스를 붙이기 전과 후를 보여준다. (`EXPLAIN QUERY PLAN`은 SQLite 전용 문법이다.)
+설비 번호로 먼저 좁히고 그 안에서 시작 시각 범위를 찾도록 컬럼 순서를 정했다. SQLite의 `EXPLAIN QUERY PLAN`으로 생성 전후의 조회 계획을 비교한다. 실행 시간은 측정하지 않았다.
 
 ```sql
 EXPLAIN QUERY PLAN
@@ -475,4 +475,4 @@ id | parent | notused | detail
 (1행)
 ```
 
-위에서 첫 번째 결과가 인덱스 생성 전(`SCAN maintenance`, 전체 훑기), 마지막 결과가 생성 후(`SEARCH ... USING INDEX ...`, 인덱스 탐색)다. 실행 계획의 `detail` 열은 이제 줄이지 않고 원문 전체를 그대로 싣는다. 같은 문구가 `results/Q15.txt`에도 있다.
+첫 번째 결과는 인덱스 생성 전의 전체 훑기(`SCAN maintenance`), 마지막 결과는 생성 후의 인덱스 탐색(`SEARCH ... USING INDEX ...`)이다. 출력 전문은 `results/Q15.txt`에 있다.

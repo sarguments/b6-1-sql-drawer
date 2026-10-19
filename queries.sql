@@ -6,31 +6,31 @@
 -- 같은 파일을 다시 실행하면 Q13·Q14가 이미 바뀐 데이터에 적용되므로 결과가 달라진다.
 -- 그래서 결과를 다시 만들 때는 scripts/capture_results.py 로 스키마·샘플 데이터부터 새로 채운다.
 
--- Q01: 가동 중(RUNNING) 설비를 라인·자산 코드 순으로 본다. WHERE 필터 + ORDER BY 정렬.
+-- Q01: 가동 중(RUNNING)인 설비를 조회하고 라인 이름·자산 코드순으로 정렬한다.
 SELECT asset_code, name, line_name, installed_on
 FROM equipment
 WHERE status = 'RUNNING'
 ORDER BY line_name, asset_code;
 
--- Q02: 가장 최근 정비 5건만 본다. ORDER BY 내림차순 + LIMIT.
+-- Q02: 정비 시작 시각이 최근인 순서로 정렬해 앞의 5건을 조회한다.
 SELECT id, equipment_id, kind, started_at, duration_min
 FROM maintenance
 ORDER BY started_at DESC
 LIMIT 5;
 
--- Q03: 고장 정비(BREAKDOWN) 이력만 본다. 값이 정해진 컬럼에 대한 WHERE 비교.
+-- Q03: 고장 정비(BREAKDOWN) 기록만 조회하고 시작 시각순으로 정렬한다.
 SELECT id, equipment_id, technician_id, started_at, duration_min, result
 FROM maintenance
 WHERE kind = 'BREAKDOWN'
 ORDER BY started_at;
 
--- Q04: 최근에 설치한 설비(2026-09-01 이후)를 본다. 날짜 범위 비교(DATE 타입).
+-- Q04: 2026-09-01부터 설치한 설비를 조회하고 설치일이 최근인 순서로 정렬한다.
 SELECT asset_code, name, installed_on, status
 FROM equipment
 WHERE installed_on >= '2026-09-01'
 ORDER BY installed_on DESC;
 
--- Q05: 정비 이력을 설비 이름·담당자 이름과 함께 본다. INNER JOIN 2개(연결된 행이 있는 것만).
+-- Q05: 고장 정비 기록에 설비명·담당자명을 연결하고 정비 시작 시각순으로 조회한다.
 SELECT m.id, e.name AS equipment_name, t.name AS technician_name, m.kind, m.started_at
 FROM maintenance AS m
 INNER JOIN equipment AS e ON e.id = m.equipment_id
@@ -38,26 +38,26 @@ INNER JOIN technician AS t ON t.id = m.technician_id
 WHERE m.kind = 'BREAKDOWN'
 ORDER BY m.started_at;
 
--- Q06: 설비별 부품 목록을 본다. INNER JOIN — 설비와 부품을 한 번에 뽑는다.
+-- Q06: 부품에 설비 정보를 연결해 자산 코드·부품 번호순으로 조회한다.
 SELECT e.asset_code, e.name AS equipment_name, c.part_no, c.name AS part_name, c.quantity
 FROM component AS c
 INNER JOIN equipment AS e ON e.id = c.equipment_id
 ORDER BY e.asset_code, c.part_no;
 
--- Q07: 설비별 정비 건수를 본다. LEFT JOIN — 정비 이력이 없는 설비도 0건으로 나온다.
+-- Q07: 설비별 정비 건수를 세고 건수가 많은 순서로 조회한다. 정비 기록이 없는 설비도 0건으로 남긴다.
 SELECT e.asset_code, e.name AS equipment_name, COUNT(m.id) AS maintenance_count
 FROM equipment AS e
 LEFT JOIN maintenance AS m ON m.equipment_id = e.id
 GROUP BY e.id, e.asset_code, e.name
 ORDER BY maintenance_count DESC, e.asset_code;
 
--- Q08: 설비별 알람을 본다. LEFT JOIN — 알람이 한 번도 없는 설비도 목록에 남는다.
+-- Q08: 설비별 알람을 조회한다. 알람이 없는 설비도 남기고 알람 정보는 NULL로 표시한다.
 SELECT e.asset_code, e.name AS equipment_name, a.alarm_code, a.level, a.occurred_at
 FROM equipment AS e
 LEFT JOIN alarm_log AS a ON a.equipment_id = e.id
 ORDER BY e.asset_code, a.occurred_at;
 
--- Q09: 담당자별 총 정비 시간을 본다. 집계 SUM + GROUP BY.
+-- Q09: 정비 기록이 있는 담당자별 건수·총 시간을 계산하고 총 시간이 긴 순서로 조회한다.
 SELECT t.employee_no, t.name AS technician_name, t.team,
        COUNT(m.id) AS maintenance_count,
        SUM(m.duration_min) AS total_minutes
@@ -66,7 +66,7 @@ INNER JOIN maintenance AS m ON m.technician_id = t.id
 GROUP BY t.id, t.employee_no, t.name, t.team
 ORDER BY total_minutes DESC;
 
--- Q10: 정비가 2건 이상인 설비의 평균·최대 정비 시간을 본다. 집계 AVG + GROUP BY + HAVING.
+-- Q10: 정비 2건 이상인 설비의 건수·평균·최대 시간을 계산하고 평균 시간이 긴 순서로 조회한다.
 SELECT e.asset_code, e.name AS equipment_name,
        COUNT(m.id) AS maintenance_count,
        ROUND(AVG(m.duration_min), 1) AS avg_minutes,
@@ -77,7 +77,7 @@ GROUP BY e.id, e.asset_code, e.name
 HAVING COUNT(m.id) >= 2
 ORDER BY avg_minutes DESC;
 
--- Q11: 라인별 알람 건수를 본다. 집계 COUNT + GROUP BY, ERROR 건수는 조건부 집계로 센다.
+-- Q11: 알람이 있는 라인별 전체·ERROR 알람 건수를 세고 전체 건수가 많은 순서로 조회한다.
 SELECT e.line_name,
        COUNT(a.id) AS alarm_count,
        SUM(CASE WHEN a.level = 'ERROR' THEN 1 ELSE 0 END) AS error_count
@@ -86,7 +86,7 @@ INNER JOIN equipment AS e ON e.id = a.equipment_id
 GROUP BY e.line_name
 ORDER BY alarm_count DESC;
 
--- Q12: 정비 이력이 한 번도 없는 설비를 찾는다. 서브쿼리(NOT EXISTS).
+-- Q12: 정비 기록이 없는 설비를 찾아 자산 코드순으로 조회한다.
 SELECT e.asset_code, e.name AS equipment_name, e.installed_on, e.status
 FROM equipment AS e
 WHERE NOT EXISTS (
@@ -94,7 +94,7 @@ WHERE NOT EXISTS (
 )
 ORDER BY e.asset_code;
 
--- Q13: 정비가 끝난(DONE) 이력만 있는 MAINTENANCE 상태 설비를 가동(RUNNING)으로 되돌린다. UPDATE.
+-- Q13: 미완료 정비 기록이 없는 MAINTENANCE 설비를 RUNNING으로 바꾼다. 정비 기록이 0건인 설비도 포함한다.
 UPDATE equipment
 SET status = 'RUNNING'
 WHERE status = 'MAINTENANCE'
@@ -106,20 +106,19 @@ WHERE status = 'MAINTENANCE'
 -- Q13 확인: 위 UPDATE 뒤에 상태가 어떻게 바뀌었는지 같은 파일에서 바로 본다.
 SELECT asset_code, name, status FROM equipment WHERE asset_code IN ('EQ-CB-002', 'EQ-WD-002') ORDER BY asset_code;
 
--- Q14: 처리 완료(cleared_at 있음)된 WARN 알람 중 오래된 것(2026-08-01 이전)을 지운다. DELETE.
+-- Q14: 처리 완료 시각이 2026-08-01 이전인 WARN 알람을 삭제한다.
 DELETE FROM alarm_log
 WHERE level = 'WARN'
   AND cleared_at IS NOT NULL
   AND cleared_at < '2026-08-01';
 
--- Q14 확인: 남은 알람 수와 지워진 조건 밖의 행이 그대로인지 본다.
+-- Q14 확인: 삭제 후 남은 알람 수를 등급별로 조회한다.
 SELECT level, COUNT(*) AS remaining_count FROM alarm_log GROUP BY level ORDER BY level;
 
--- Q15: 정비 이력 조회에 인덱스를 붙인다.
--- 적용 이유: 화면 조회는 "설비 하나의 기간별 정비 이력"이 가장 잦다. 인덱스가 없으면 그 조회가
--- 매번 maintenance 전체를 훑는다. (equipment_id, started_at) 순서로 두면 설비로 먼저 좁히고
--- 그 안에서 기간을 자를 수 있다. 아래 EXPLAIN QUERY PLAN 두 줄이 붙기 전과 후를 보여준다.
--- (EXPLAIN QUERY PLAN은 SQLite 전용 문법이다.)
+-- Q15: 설비·기간 조회의 인덱스 적용 전후 실행 계획을 비교한다.
+-- 설비 번호 일치 조건과 시작 시각 범위 조건에 맞춰 (equipment_id, started_at) 인덱스를 만든다.
+-- 설비 번호로 먼저 좁히고 그 안에서 시작 시각 범위를 찾도록 컬럼 순서를 정했다.
+-- EXPLAIN QUERY PLAN은 SQLite 전용 구문이며, 실행 시간이 아닌 조회 계획을 비교한다.
 EXPLAIN QUERY PLAN
 SELECT id, started_at, duration_min FROM maintenance
 WHERE equipment_id = 5 AND started_at >= '2026-07-01';

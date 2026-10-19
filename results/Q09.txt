@@ -1,4 +1,4 @@
-Q09 — 담당자별 총 정비 시간을 본다. 집계 SUM + GROUP BY.
+Q09 — 정비 기록이 있는 담당자별 건수·총 시간을 계산하고 총 시간이 긴 순서로 조회한다.
 
 employee_no | technician_name | team | maintenance_count | total_minutes
 ------------+-----------------+------+-------------------+--------------

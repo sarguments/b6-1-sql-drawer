@@ -1,6 +1,6 @@
 # B6-1 정보를 깔끔하게 정리하는 디지털 서랍장 만들기
 
-코딧세이 AI 올인원 본과정 B6-1 미션 저장소입니다.
+코딧세이 AI 올인원 본과정 B6-1 미션 저장소다.
 
 ## 소재
 스마트팩토리의 설비·부품·정비 이력·담당자·알람을 SQLite로 관리한다. 설비 한 대에 여러 부품과 정비 이력, 알람이 연결되도록 테이블을 나눴다.
@@ -18,7 +18,7 @@ SQLite와 `sqlite3` CLI를 사용한다. 결과를 일괄 생성할 때는 Pytho
 | [`schema.sql`](schema.sql) | 테이블 5개 생성(`CREATE TABLE`) — PK·FK·제약조건·타입 주석 |
 | [`seed.sql`](seed.sql) | 샘플 데이터 입력(`INSERT`) — 테이블당 10행 이상 |
 | [`queries.sql`](queries.sql) | 핵심 쿼리 15개 + 각 쿼리 한 줄 설명 + 인덱스 |
-| [`QUERIES.md`](QUERIES.md) | 쿼리 15개를 한 쿼리마다 설명·SQL 전문·실행 결과 전체로 정리한 문서 |
+| [`QUERIES.md`](QUERIES.md) | 쿼리별 설명과 실행 결과 |
 | [`results/`](results) | 쿼리별 실행 결과 텍스트(`Q01`~`Q15`)·요약·보너스 3건 |
 | [`erd.svg`](erd.svg) · [`erd.dot`](erd.dot) | 테이블 관계도(ERD) 이미지와 생성 원본 |
 | [`scripts/capture_results.py`](scripts/capture_results.py) | 스키마·샘플 데이터를 새로 채우고 결과를 다시 만드는 스크립트 |
@@ -43,7 +43,7 @@ sqlite3 -cmd 'PRAGMA foreign_keys = ON' b6-1.sqlite3 < queries.sql
 python3 scripts/capture_results.py
 ```
 
-`queries.sql`은 표준 SQL 범위로 썼습니다. SQLite 고유 문법을 쓴 곳은 두 군데뿐이고, 해당 위치에 주석으로 표시했습니다.
+SQLite 관련 구문은 다음 위치에 사용했다.
 
 - `schema.sql`의 `AUTOINCREMENT`(자동 증가 키), `PRAGMA foreign_keys = ON`(외래 키 검사 켜기)
 - `queries.sql` Q15의 `EXPLAIN QUERY PLAN`(실행 계획 출력)
@@ -57,7 +57,7 @@ python3 scripts/capture_results.py
 - 날짜 저장: 현재 샘플 데이터는 날짜를 `YYYY-MM-DD`, 날짜와 시각을 `YYYY-MM-DD HH:MM:SS` 형식의 문자열로 저장했다. 같은 형식으로 맞춘 정상 날짜 값끼리는 문자열 비교로도 날짜순 조회가 가능하다.
 - 입력 검증의 한계: SQLite에서는 `DATE`·`DATETIME`으로 선언해도 날짜 형식을 자동으로 검사하지 않아, 날짜가 아닌 문자열도 저장될 수 있다. 일반 `INTEGER` 컬럼 역시 선언만으로 모든 비정수 입력을 거부하지는 않는다. 따라서 현재 타입 선언만으로 날짜·정수 유효성 검증까지 보장한다고 볼 수는 없다.
 - 외래 키: `schema.sql` 첫 줄의 `PRAGMA foreign_keys = ON`이 있어야 실제로 막힌다(SQLite 기본값은 꺼짐). 이 검사는 연결마다 켜야 하므로 CLI에서는 `-cmd 'PRAGMA foreign_keys = ON'`을 함께 준다. 검사가 켜진 상태에서 없는 부모를 거부한 1건은 `results/bonus2-fk-violation.txt`에 있다.
-- 인덱스 1개: `idx_maintenance_equipment_started` — `maintenance (equipment_id, started_at)`. 설비 하나의 기간별 정비 이력 조회가 가장 잦아, 설비로 먼저 좁히고 그 안에서 기간을 자르게 했다. 이유와 전후 실행 계획은 `queries.sql`의 Q15에 있다.
+- 인덱스 1개: `idx_maintenance_equipment_started` — `maintenance (equipment_id, started_at)`.
 
 ## 엑셀·파일 대신 데이터베이스를 쓴 이유
 
@@ -67,12 +67,26 @@ python3 scripts/capture_results.py
 
 ## 핵심 개념 정리
 
-- **PK vs FK**: PK(Primary Key)는 그 행 하나를 가리키는 고유 이름표다. `equipment.id`처럼 행마다 다르고 비어 있을 수 없다. FK(Foreign Key)는 다른 표의 PK를 가리키는 연결 고리다. `maintenance.equipment_id`가 `equipment.id`를 가리키는 식이다. PK는 "이 행은 누구인가", FK는 "이 행은 누구와 이어져 있나"를 담당한다.
+- **PK vs FK**: PK(Primary Key)는 행을 구별하는 키이고, FK(Foreign Key)는 다른 테이블의 키를 참조하는 컬럼이다. `equipment.id`는 설비를 구별하고, `maintenance.equipment_id`는 해당 설비를 참조한다.
 - **1:N 관계**: 한 부모 행에 여러 자식 행이 붙는 관계다. 설비 한 대에 정비 이력이 여러 건 붙는 것이 그 예다. 자식 쪽(`maintenance`)이 부모의 id(`equipment_id`)를 값으로 들고 있어, 이 값으로 둘을 이어 붙인다.
 - **INNER JOIN vs LEFT JOIN**: `INNER JOIN`은 양쪽에 짝이 있는 행만 남긴다. `LEFT JOIN`은 왼쪽 표의 행을 모두 남기고, 오른쪽에 짝이 없으면 그 자리를 `NULL`로 채운다. Q07에서 정비 이력이 없는 설비(`EQ-AG-001`)를 0건으로 남기는 데 `LEFT JOIN`을 썼다.
 - **GROUP BY와 집계 함수**: `GROUP BY`로 행을 기준별로 묶고, 묶음마다 `COUNT`(건수)·`SUM`(합계)·`AVG`(평균)를 계산한다. Q09는 담당자별로 묶어 총 정비 시간을, Q10은 설비별로 묶어 평균·최대 시간을 구한다. 묶은 뒤의 조건은 `WHERE`가 아니라 `HAVING`으로 건다(Q10의 `HAVING COUNT(m.id) >= 2`).
 - **SELECT / INSERT / UPDATE / DELETE**: `SELECT`는 조회, `INSERT`는 새 행 입력, `UPDATE`는 기존 값 변경, `DELETE`는 행 삭제다. 데이터를 바꾸는 쿼리(Q13·Q14)는 조회(Q01~Q12) 뒤에 둔다.
-- **인덱스**: 특정 컬럼 기준으로 찾을 때 표 전체를 훑지 않도록 미리 정렬해 둔 색인이다. 자주 조건으로 쓰는 컬럼에 붙인다. Q15는 `maintenance (equipment_id, started_at)`에 붙여, 실행 계획이 전체 훑기(`SCAN`)에서 인덱스 탐색(`SEARCH ... USING INDEX`)으로 바뀌는 것을 보여준다.
+
+### 인덱스
+
+인덱스는 조건에 맞는 데이터를 찾을 때 사용할 수 있는 색인이다. Q15에서는 설비 번호가 5이고 시작 시각이 `2026-07-01` 이상인 정비 이력을 조회한다. 이 조건에 맞춰 설비 번호와 시작 시각을 묶은 복합 인덱스를 만들었다.
+
+```sql
+CREATE INDEX idx_maintenance_equipment_started
+ON maintenance (equipment_id, started_at);
+```
+
+**컬럼 순서:** 조회 조건은 `equipment_id = 5 AND started_at >= '2026-07-01'`이다. 설비 번호가 같은 기록으로 먼저 좁히고, 그 안에서 시작 시각의 범위를 찾도록 `equipment_id`를 앞에, `started_at`을 뒤에 뒀다. 날짜를 앞에 두면 지정한 날짜 이후의 여러 설비 기록이 함께 탐색 범위에 들어갈 수 있어, 이 조회에는 설비 번호를 먼저 두는 순서가 적합하다.
+
+**실행 계획 비교:** 인덱스 생성 전후에 같은 조회를 `EXPLAIN QUERY PLAN`으로 확인했다. 적용 전에는 `SCAN maintenance`로 테이블 전체를 훑었고, 적용 후에는 `SEARCH maintenance USING INDEX idx_maintenance_equipment_started (equipment_id=? AND started_at>?)`로 인덱스를 사용하는 탐색 계획이 나왔다. SQL과 결과 전문은 [`QUERIES.md`의 Q15](QUERIES.md#q15--정비-이력-조회-인덱스-생성--적용-이유)에 있다.
+
+실행 계획은 비교했지만 실행 시간을 측정한 것은 아니므로, 속도가 몇 배 빨라졌다고 말할 수는 없다. 인덱스는 저장 공간을 차지하고 데이터 추가·수정·삭제 시 유지 비용도 발생하므로, 모든 컬럼이 아니라 조회 조건에 맞춰 추가했다.
 
 ## 쿼리 15개
 
@@ -121,24 +135,13 @@ python3 scripts/capture_results.py
 
 - **수정·삭제 후 재실행**: `UPDATE`·`DELETE`를 실행하면 데이터가 바뀌어 같은 조회의 결과도 달라진다. 결과를 비교할 때는 스키마와 샘플 데이터를 다시 적용해 같은 초기 상태에서 실행했다.
 - **외래 키 검사**: SQLite는 연결마다 `PRAGMA foreign_keys = ON`을 켜야 외래 키를 검사한다. 검사를 켠 뒤 없는 설비 번호를 참조하는 정비 기록을 넣어 `FOREIGN KEY constraint failed`로 거부되는 것을 확인했다.
-- **인덱스 적용**
-  - **문제**: Q15는 설비 5번의 정비 이력 중 `2026-07-01` 이후에 시작한 기록을 조회한다. `EXPLAIN QUERY PLAN`으로 확인하니 `SCAN maintenance`가 나왔다. 필요한 설비와 기간이 정해져 있어도 정비 이력 테이블 전체를 훑으며 조건에 맞는 행을 찾는 계획이었다. 데이터가 늘어나면 다른 설비의 기록까지 확인하는 부담도 커질 수 있다.
-  - **해결**: 조회 조건에 맞춰 설비 번호와 시작 시각을 묶은 복합 인덱스를 추가했다.
-
-    ```sql
-    CREATE INDEX idx_maintenance_equipment_started
-    ON maintenance (equipment_id, started_at);
-    ```
-
-  - **컬럼 순서를 정한 이유**: 조회 조건은 `equipment_id = 5 AND started_at >= '2026-07-01'`이다. 먼저 설비 번호가 같은 기록으로 범위를 좁히고, 그 안에서 시작 시각의 범위를 찾도록 `equipment_id`를 앞에, `started_at`을 뒤에 뒀다. 날짜를 앞에 두면 지정한 날짜 이후의 여러 설비 기록이 함께 탐색 범위에 들어갈 수 있어, 이 조회에는 설비 번호를 먼저 두는 순서가 적합하다.
-  - **확인**: 인덱스 생성 전후에 같은 조회의 실행 계획을 비교했다. 적용 전의 `SCAN maintenance`가 적용 후에는 `SEARCH maintenance USING INDEX idx_maintenance_equipment_started (equipment_id=? AND started_at>?)`로 바뀌었다. 테이블 전체를 훑는 대신 인덱스에서 설비 번호와 시작 시각 조건으로 탐색하는 계획을 확인했다. 전후 출력은 [`results/Q15.txt`](results/Q15.txt)에 있다.
-  - **확인 범위와 한계**: 실행 계획이 바뀐 것은 확인했지만, 실행 시간을 측정해 몇 배 빨라졌는지 비교한 것은 아니다. 인덱스는 저장 공간을 차지하고 데이터를 추가·수정·삭제할 때 유지 비용도 발생하므로, 모든 컬럼이 아니라 이 조회 조건에 맞춰 추가했다.
 
 ## 대화형 시연판
 
 저장소를 내려받은 뒤 [`showcase/drawer-light.html`](showcase/drawer-light.html)을 Chrome에서 연다. 어두운 화면은 [`showcase/drawer.html`](showcase/drawer.html)이다.
 
 - 쿼리 선택: 해당 쿼리의 설명·SQL·실행 결과와 관련 행을 확인한다.
+- Q15 선택: 하단에서 인덱스 적용 전·후 실행 계획을 함께 비교하고, 공통 조회 결과를 확인한다.
 - 자식 표의 id 선택: 그 행이 참조하는 부모 행을 확인한다.
 - 표 머리글 선택: 표를 확대한다. **확대 전으로 (Esc)** 버튼이나 **Esc**로 이전 화면으로 돌아간다.
 

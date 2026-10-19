@@ -1,4 +1,4 @@
-Q03 — 고장 정비(BREAKDOWN) 이력만 본다. 값이 정해진 컬럼에 대한 WHERE 비교.
+Q03 — 고장 정비(BREAKDOWN) 기록만 조회하고 시작 시각순으로 정렬한다.
 
 id | equipment_id | technician_id | started_at          | duration_min | result
 ---+--------------+---------------+---------------------+--------------+-------

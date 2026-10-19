@@ -363,20 +363,21 @@ function sqlHTML(){
 }
 function resultHTML(){
  const q=qOf(state.q);
- const outs=q.id==='Q15'?[q.outputs[state.after?2:0],EVIDENCE.indexMatches]:q.outputs;
- return outs.map(o=>o.columns.length
+ const titles=q.id==='Q15'?['인덱스 적용 전 실행 계획','인덱스 적용 후 실행 계획','공통 조회 결과']:null;
+ const outs=titles?[q.outputs[0],q.outputs[2],EVIDENCE.indexMatches]:q.outputs;
+ return outs.map((o,i)=>(titles?'<h3>'+titles[i]+'</h3>':'')+(o.columns.length
   ?'<div class="scroll" role="region" tabindex="0" aria-label="실행 결과">'+'<table><thead><tr>'+o.columns.map(c=>'<th scope="col">'+esc(c)+'</th>').join('')+'</tr></thead><tbody>'+o.rows.map(r=>'<tr>'+r.map(v=>'<td>'+esc(v)+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>'
-  :o.affected>=0?'<p class="count">변경 '+o.affected+'행</p>':'<p class="count">인덱스 생성</p>').join('');
+  :o.affected>=0?'<p class="count">변경 '+o.affected+'행</p>':'<p class="count">인덱스 생성</p>')).join('');
 }
 function note(){
  const q=qOf(state.q);
  if(q.id==='Q13')return '조건에 맞는 설비가 없어 바뀐 행은 0행입니다. 아래 두 행은 UPDATE 뒤 상태 확인 결과입니다(협동로봇 셀 2호는 MAINTENANCE, 용접 로봇 2호는 RETIRED). 이 SQL은 정비 이력이 0건인 MAINTENANCE 설비도 대상으로 삼습니다.';
  if(q.id==='Q14'){
   if(state.after)return '처리 완료된 오래된 WARN 2행(alarm_log #1·#17)을 삭제했습니다. 알람은 18행에서 16행이 됩니다. 두 행은 표에서 사라집니다.';
-  return '조건에 맞는 알람 2행(alarm_log #1·#17)이 줄 그은 삭제 대상으로 켜졌습니다. 변경 후를 누르면 두 행이 표에서 사라집니다.';
+  return '조건에 맞는 알람 2행(alarm_log #1·#17)을 빨간 취소선으로 표시합니다. 변경 후를 누르면 두 행이 표에서 사라집니다.';
  }
  if(q.id==='Q15')return '인덱스를 만들어도 조회 결과는 정비 id 11·12·30 3행으로 같습니다. 실행 계획만 SCAN에서 SEARCH로 바뀝니다.';
- if(q.id==='Q12')return '정비 이력이 한 번도 없는 설비는 EQ-AG-001(이동 로봇 1호, id 12) 한 대입니다. NOT EXISTS 조건에 걸리는 설비 1행만 켜집니다.';
+ if(q.id==='Q12')return '정비 이력이 한 번도 없는 설비는 EQ-AG-001(이동 로봇 1호, id 12) 한 대입니다. 조건에 맞는 설비 1행을 강조합니다.';
  if(q.id==='Q05')return '고장 정비(BREAKDOWN)만 남긴 JOIN 결과 13행입니다. 전체 정비 30행과 다릅니다.';
  const counts=q.outputs.filter(o=>o.columns.length).map(o=>o.rows.length);
  return q.id+' 결과 '+(counts.length?counts[0]+'행':'')+'입니다.';
@@ -417,7 +418,7 @@ function update(){
  $('#table-heading').textContent='queries.sql · '+state.q+' · '+titleOf(qOf(state.q));
  $('#query-picker').value=state.q;
  $('#query-explanation').textContent=QUERY_EXPLANATIONS[state.q];
- $('#before-after').hidden=!['Q13','Q14','Q15'].includes(state.q);
+ $('#before-after').hidden=!['Q13','Q14'].includes(state.q);
  $('#before').setAttribute('aria-pressed',String(!state.after));
  $('#after').setAttribute('aria-pressed',String(state.after));
  $('#fk-check').setAttribute('aria-pressed',String(state.fk));

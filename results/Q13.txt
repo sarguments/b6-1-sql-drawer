@@ -1,4 +1,4 @@
-Q13 — 정비가 끝난(DONE) 이력만 있는 MAINTENANCE 상태 설비를 가동(RUNNING)으로 되돌린다. UPDATE.
+Q13 — 미완료 정비 기록이 없는 MAINTENANCE 설비를 RUNNING으로 바꾼다. 정비 기록이 0건인 설비도 포함한다.
 
 [변경] 0행 적용
 
