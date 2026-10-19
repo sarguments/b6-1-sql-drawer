@@ -53,21 +53,17 @@ python3 scripts/capture_results.py
 - 테이블 5개: `equipment`(설비), `technician`(정비 담당), `component`(부품), `maintenance`(정비 이력), `alarm_log`(알람 로그).
 - 1:N 관계 4개: 설비→부품, 설비→정비 이력, 담당자→정비 이력, 설비→알람 로그.
 - 제약조건: `asset_code`·`employee_no`에 `UNIQUE`, 주요 컬럼에 `NOT NULL`, `status`·`cert_level`·`kind`·`result`에 `CHECK`(정해진 값만 저장), 부품 수량 `CHECK (quantity > 0)`.
-- 타입: 날짜만 필요하면 `DATE`, 시각까지 필요하면 `DATETIME`, 값·식별자는 `TEXT`, 개수·시간은 `INTEGER`로 의도를 나타냈다. SQLite의 `DATE`·`DATETIME`은 전용 날짜 저장 타입이나 형식 검증이 아니라 NUMERIC 타입 친화도 선언이다. 현재 시드의 날짜 값은 `YYYY-MM-DD`와 `YYYY-MM-DD HH:MM:SS` 형식의 TEXT로 저장되어, 같은 형식끼리의 문자열 비교가 날짜 순서와 일치한다. 날짜가 아닌 문자열도 저장될 수 있으므로 날짜 유효성 검증을 보장하지 않는다. 일반 `INTEGER` 컬럼 역시 타입 친화도이며, 정수만 저장하도록 강제하는 선언과는 다르다.
+- 타입: 날짜만 필요하면 `DATE`, 시각까지 필요하면 `DATETIME`, 값·식별자는 `TEXT`, 개수·시간은 `INTEGER`로 의도를 나타냈다.
+- 날짜 저장: 현재 샘플 데이터는 날짜를 `YYYY-MM-DD`, 날짜와 시각을 `YYYY-MM-DD HH:MM:SS` 형식의 문자열로 저장했다. 같은 형식으로 맞춘 정상 날짜 값끼리는 문자열 비교로도 날짜순 조회가 가능하다.
+- 입력 검증의 한계: SQLite에서는 `DATE`·`DATETIME`으로 선언해도 날짜 형식을 자동으로 검사하지 않아, 날짜가 아닌 문자열도 저장될 수 있다. 일반 `INTEGER` 컬럼 역시 선언만으로 모든 비정수 입력을 거부하지는 않는다. 따라서 현재 타입 선언만으로 날짜·정수 유효성 검증까지 보장한다고 볼 수는 없다.
 - 외래 키: `schema.sql` 첫 줄의 `PRAGMA foreign_keys = ON`이 있어야 실제로 막힌다(SQLite 기본값은 꺼짐). 이 검사는 연결마다 켜야 하므로 CLI에서는 `-cmd 'PRAGMA foreign_keys = ON'`을 함께 준다. 검사가 켜진 상태에서 없는 부모를 거부한 1건은 `results/bonus2-fk-violation.txt`에 있다.
 - 인덱스 1개: `idx_maintenance_equipment_started` — `maintenance (equipment_id, started_at)`. 설비 하나의 기간별 정비 이력 조회가 가장 잦아, 설비로 먼저 좁히고 그 안에서 기간을 자르게 했다. 이유와 전후 실행 계획은 `queries.sql`의 Q15에 있다.
 
 ## 엑셀·파일 대신 데이터베이스를 쓴 이유
 
-같은 표를 엑셀 파일로도 만들 수 있다. 그래도 여기서는 테이블로 나눠 저장했고, 그 차이는 아래 지점에서 드러난다.
-
-- **관계를 값으로 잇는다**: 엑셀도 참조 함수와 분리된 시트로 중복을 줄일 수 있다. 이 구현에서는 설비 이름을 `equipment` 한 행에만 두고 `maintenance.equipment_id`가 그 행의 번호를 참조한다. 이름을 한 번 고치면 조인 결과에도 새 이름이 나온다.
-- **참조 무결성을 스키마로 검사한다**: 엑셀도 유효성 검사로 입력을 제한할 수 있지만, 이는 DB의 테이블 간 FK 제약과 같은 기능은 아니다. 이 구현은 연결별로 FK 검사를 켠 상태에서 없는 설비 번호를 참조하는 입력을 거부한다(`results/bonus2-fk-violation.txt`).
-- **누락·중복·범위를 제약조건으로 검사한다**: `NOT NULL`·`UNIQUE`·`CHECK`가 값의 누락·중복·허용 범위를 저장 단계에서 검사한다. 엑셀 유효성 검사는 복사·붙여넣기 등 입력 경로에 따른 제한이 있어 DB 제약조건과 보장 범위를 구분해야 한다.
-- **동시 접근 방식이 다르다**: 파일 사본을 각자 수정한 뒤 같은 경로에 덮어쓰는 방식과 OneDrive·SharePoint의 Excel 공동 편집은 다르다. 공동 편집은 여러 사람의 변경을 반영하므로 단순한 파일 덮어쓰기로 일반화할 수 없다. SQLite는 여러 연결이 읽을 수 있지만 쓰기는 한 번에 하나로 직렬화한다. 트랜잭션은 묶인 변경을 함께 확정하거나 취소하는 데 쓴다.
-- **관계와 규칙을 쿼리에서 재사용한다**: 엑셀도 참조 함수·피벗으로 비슷한 조회·집계를 할 수 있다. 이 미션의 초점은 엑셀에 같은 결과를 만들 기능이 없다는 것이 아니라, 관계와 무결성 규칙을 스키마로 관리하고 SQL로 조회·집계한다는 점이다.
-
-공식 근거: SQLite의 [데이터 타입](https://www.sqlite.org/datatype3.html)·[외래 키](https://www.sqlite.org/foreignkeys.html)·[트랜잭션 격리](https://www.sqlite.org/isolation.html), Microsoft의 [Excel 공동 편집](https://support.microsoft.com/en-us/excel/get-started/collaborate-on-excel-workbooks-at-the-same-time-with-co-authoring).
+- **중복 저장과 수정 누락을 줄이기 위해**: 정비 이력마다 설비명과 담당자 정보를 반복해서 적는 대신, 설비·담당자 테이블에 정보를 두고 번호로 연결했다. 설비명이 바뀌면 설비 테이블 한 곳만 수정하면 된다.
+- **잘못된 연결을 막기 위해**: 존재하지 않는 설비에 정비 이력이나 알람이 연결되지 않도록 외래 키를 설정했다. SQLite에서는 연결마다 외래 키 검사를 켜서 이 규칙을 적용한다.
+- **입력 규칙을 일관되게 적용하기 위해**: 필수값 누락은 `NOT NULL`, 설비 코드·사번 중복은 `UNIQUE`, 정해진 상태값과 양수인 부품 수량은 `CHECK`로 검사한다.
 
 ## 핵심 개념 정리
 
@@ -125,7 +121,18 @@ python3 scripts/capture_results.py
 
 - **수정·삭제 후 재실행**: `UPDATE`·`DELETE`를 실행하면 데이터가 바뀌어 같은 조회의 결과도 달라진다. 결과를 비교할 때는 스키마와 샘플 데이터를 다시 적용해 같은 초기 상태에서 실행했다.
 - **외래 키 검사**: SQLite는 연결마다 `PRAGMA foreign_keys = ON`을 켜야 외래 키를 검사한다. 검사를 켠 뒤 없는 설비 번호를 참조하는 정비 기록을 넣어 `FOREIGN KEY constraint failed`로 거부되는 것을 확인했다.
-- **인덱스 적용**: 설비 번호와 시작 시각으로 정비 기록을 조회할 때 실행 계획이 전체 훑기(`SCAN`)로 나왔다. `(equipment_id, started_at)` 복합 인덱스를 추가하고 Q15에서 인덱스 탐색(`SEARCH ... USING INDEX`)으로 바뀌는 것을 확인했다.
+- **인덱스 적용**
+  - **문제**: Q15는 설비 5번의 정비 이력 중 `2026-07-01` 이후에 시작한 기록을 조회한다. `EXPLAIN QUERY PLAN`으로 확인하니 `SCAN maintenance`가 나왔다. 필요한 설비와 기간이 정해져 있어도 정비 이력 테이블 전체를 훑으며 조건에 맞는 행을 찾는 계획이었다. 데이터가 늘어나면 다른 설비의 기록까지 확인하는 부담도 커질 수 있다.
+  - **해결**: 조회 조건에 맞춰 설비 번호와 시작 시각을 묶은 복합 인덱스를 추가했다.
+
+    ```sql
+    CREATE INDEX idx_maintenance_equipment_started
+    ON maintenance (equipment_id, started_at);
+    ```
+
+  - **컬럼 순서를 정한 이유**: 조회 조건은 `equipment_id = 5 AND started_at >= '2026-07-01'`이다. 먼저 설비 번호가 같은 기록으로 범위를 좁히고, 그 안에서 시작 시각의 범위를 찾도록 `equipment_id`를 앞에, `started_at`을 뒤에 뒀다. 날짜를 앞에 두면 지정한 날짜 이후의 여러 설비 기록이 함께 탐색 범위에 들어갈 수 있어, 이 조회에는 설비 번호를 먼저 두는 순서가 적합하다.
+  - **확인**: 인덱스 생성 전후에 같은 조회의 실행 계획을 비교했다. 적용 전의 `SCAN maintenance`가 적용 후에는 `SEARCH maintenance USING INDEX idx_maintenance_equipment_started (equipment_id=? AND started_at>?)`로 바뀌었다. 테이블 전체를 훑는 대신 인덱스에서 설비 번호와 시작 시각 조건으로 탐색하는 계획을 확인했다. 전후 출력은 [`results/Q15.txt`](results/Q15.txt)에 있다.
+  - **확인 범위와 한계**: 실행 계획이 바뀐 것은 확인했지만, 실행 시간을 측정해 몇 배 빨라졌는지 비교한 것은 아니다. 인덱스는 저장 공간을 차지하고 데이터를 추가·수정·삭제할 때 유지 비용도 발생하므로, 모든 컬럼이 아니라 이 조회 조건에 맞춰 추가했다.
 
 ## 대화형 시연판
 
